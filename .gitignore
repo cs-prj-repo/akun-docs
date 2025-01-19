@@ -5,3 +5,4 @@ dist-ssr
 cache
 .temp
 *.local
+node_modules
