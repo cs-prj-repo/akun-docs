@@ -1,0 +1,7 @@
+cache
+dist
+dist-ssr
+.cache
+cache
+.temp
+*.local
