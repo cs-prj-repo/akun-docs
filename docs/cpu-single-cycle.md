@@ -49,12 +49,19 @@ cpu-single-cycle
 - 编译工具： RISC-V
 - 编程语言： Verilog HDL、C语言
 
-::: tip 在开始之前—更换Ubuntu软件源
+### 安装ubuntu系统
+
+[点击此处查看相关资料](install-ubuntu.md)
+<br><br>
+  
+::: tip 开始之前—更换Ubuntu软件源
 
 由于 Ubuntu 默认软件源在国内访问速度较慢，我们建议大家更换为国内的软件源，例如[北外镜像源](https://mirrors.bfsu.edu.cn/help/ubuntu/)。
 
 在更换软件源后，请使用 sudo apt update 命令更新索引。
 ::: 
+
+
 
 
 ### 安装Verilator v5.008
@@ -81,7 +88,7 @@ $ apt-get install g++-riscv64-linux-gnu binutils-riscv64-linux-gnu
 
 ### 1. 获取项目代码
 ``` shell
-git clone git@github.com:akun0311/cpu-single-cycle.git
+$ git clone git@github.com:akun0311/cpu-single-cycle.git
 ```
 
 ### 2. 设置环境变量

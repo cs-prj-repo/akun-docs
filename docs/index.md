@@ -7,12 +7,14 @@ hero:
   text: "计算机知识分享"
   actions:
     - theme: brand
-      text: cpu-single-cycle项目介绍
+      text: cpu-single-cycle项目使用指南
       link: /cpu-single-cycle
-
-    # - theme: alt
-    #   text: API Examples
-    #   link: /api-examples
+    - theme: brand
+      text: 安装ubuntu系统
+      link: /install-ubuntu
+    - theme: alt
+      text: API Examples
+      link: /api-examples
 
 features:
   # - title: Feature A
