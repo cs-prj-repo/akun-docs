@@ -14,16 +14,16 @@ export default defineConfig({
 
     sidebar: [
       {
-        text: 'Examples',
+        text: '文档',
         items: [
-          { text: 'Markdown Examples', link: '/markdown-examples' },
-          { text: 'Runtime API Examples', link: '/api-examples' }
+          { text: 'cpu-single-cycle项目介绍', link: '/cpu-single-cycle' },
+          { text: '安装ubuntu系统', link: '/install-ubuntu' }
         ]
       }
     ],
 
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/vuejs/vitepress' }
+      { icon: 'github', link: 'https://github.com/akun0311/akun-docs' }
     ]
   }
 })
