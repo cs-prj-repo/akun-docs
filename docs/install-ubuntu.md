@@ -1,6 +1,7 @@
 ---
 title: 安装ubuntu系统
 editLink: true
+layout: doc
 ---
 
 # {{ $frontmatter.title }}
