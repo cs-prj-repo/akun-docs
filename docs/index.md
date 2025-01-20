@@ -10,18 +10,15 @@ hero:
       text: cpu-single-cycle项目使用指南
       link: /cpu-single-cycle
     - theme: brand
-      text: 安装ubuntu系统
+      text: ubuntu系统安装
       link: /install-ubuntu
-    - theme: alt
-      text: API Examples
-      link: /api-examples
+    - theme: brand
+      text: use-vscode
+      link: /use-vscode
 
 features:
-  # - title: Feature A
-  #   details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
-  # - title: Feature B
-  #   details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
-  # - title: Feature C
-  #   details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
+   - title: 更多功能正在支持中
+     details: 敬请期待
+  
 ---
 
