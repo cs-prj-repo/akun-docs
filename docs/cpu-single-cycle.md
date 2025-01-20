@@ -180,7 +180,7 @@ make run ARCH=riscv32-npc mainargs=train
 
 
 
-## 四、仿真框架介绍
+## 四、仿真框架介绍及要求
 
 ### 1. 仿真框架对于处理器最顶层模块名称`TOP_Module_Name`的要求
 为了支持所有的单周期处理器都可以接入该仿真、测试环境，我们预先设定了一个最顶层的仿真模块名称，即`TOP_Module_Name=CPU`也就是说处理器最顶层模块名称必须是`CPU`
@@ -196,6 +196,50 @@ make run ARCH=riscv32-npc mainargs=train
 示例： 若`simulator/Makefile`中的`TOPNAME :=AAA`, 则处理器最顶层模块名称需要为`AAA`
 ::: 
 
+### 2. 处理器最顶层模块的信号要求
+
+无论处理器顶层模块的模块名为什么，它都必须带有下面三个信号`clk`, `rst`, `cur_pc_for_simulator`
+
+```verilog
+module TOP_Module_Name
+(
+    input  wire         clk,                    //该信号是仿真框架提供的时钟信号
+    input  wire         rst,                    //该信号是仿真框架提供的复位信号
+    output wire [31:0]  cur_pc_for_simulator    //该信号需要连接当前的pc值
+);
+
+endmodule
+```
+### 3. 如何使用仿真框架的`clk`和`rst`信号
+
+仿真框架`clk`和`rst`信号的使用要求如下：
+
+```verilog
+//我们只捕捉时钟上升沿的信号进行处理，示例如下
+always @(posedge clk) begin
+
+end
+
+//rst在高电平时进行复位
+always @(posedge clk) begin
+    if(rst) begin        //高电平时进行复位
+        regfile[0] <= 32'h0
+    end
+end
+
+```
+
+### 4. 仿真框架对于pc复位值的要求
+`pc`复位值必须为`80000000`
+``` verilog
+always @(posedge clk) begin
+    if(rst) begin
+        pc <= 32'h80000000;
+    end
+end
+```
+
+
 
 ## 五、将你的处理器接入仿真框架
 
@@ -204,48 +248,10 @@ make run ARCH=riscv32-npc mainargs=train
 
 # ---------------------下面待修改--------------------------------------
 
-## 二. 运行模拟器和测试程序
-
-2.运行模拟器——执行`make run`命令，运行模拟器
-
-3.运行测试程序
-(1)运行`cpu-test`测试程序, 复制下面的示例命令并执行
-```
-示例1
-
-示例2
 
 
-示例3
-    cd $TEST_HOME/cpu-tests
-    make run ARCH=riscv32-npc
-```
-
-(2)运行benchmarck测试程序
-```
-示例1——运行microbench的test测试集
-    cd $TEST_HOME/benchmarks/microbench
-    make run ARCH=riscv32-npc mainargs=test
-
-示例2——运行microbench的train测试集
-    cd $TEST_HOME/benchmarks/microbench
-    make run ARCH=riscv32-npc mainargs=train
-
-示例3——运行coremark
-    cd $TEST_HOME/benchmarks/coremark
-    make run ARCH=riscv32-npc
-    #这个测试的分数可能不准
-
-示例4——运行dhrystone测试
-    cd $TEST_HOME/benchmarks/dhrystone
-    make run ARCH=riscv32-npc
-    #这个测试的分数也可能不准
-```
 
 
-### 仿真环境介绍
-为了大家测试自己的单周期处理器实现是否正确，我们开发了一个用于测试单周期处理器的仿真框架。
-我们只需要将自己的单周期处理器进行稍微改动，就可以接入仿真框架，进行一些测试。
 
 ### 1. **将你的处理器代码移动直`IP/mycpu目录`**:
 
