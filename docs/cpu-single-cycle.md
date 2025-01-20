@@ -53,9 +53,8 @@ cpu-single-cycle
 ### 安装ubuntu系统
 
 [点击此处查看相关资料](install-ubuntu.md)
-<br><br>
-  
-::: tip 开始之前—更换Ubuntu软件源
+<br>
+::: tip 记得更换Ubuntu软件源
 
 由于 Ubuntu 默认软件源在国内访问速度较慢，我们建议大家更换为国内的软件源，例如[北外镜像源](https://mirrors.bfsu.edu.cn/help/ubuntu/)。
 
