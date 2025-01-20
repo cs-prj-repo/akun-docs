@@ -1,6 +1,7 @@
 ---
 title: CPU-single-cycle项目使用指南
 editLink: true
+layout: doc
 ---
 
 # {{ $frontmatter.title }}
@@ -70,12 +71,15 @@ cpu-single-cycle
 
 ### 安装GTKwave
 ```shell
-$ apt install gtkwave
+$ sudo apt install gtkwave
 ```
 
 ### 安装库文件和编译工具
 ```shell
-$ apt-get install g++-riscv64-linux-gnu binutils-riscv64-linux-gnu
+$ sudo apt-get install build-essential
+$ sudo apt-get install libreadline-dev
+$ sudo apt-get install llvm-dev
+$ sudo apt-get install g++-riscv64-linux-gnu binutils-riscv64-linux-gnu
 ```
 
 ::: tip
@@ -108,36 +112,95 @@ export TEST_HOME=$CPU_HOME/software-test     #直接复制即可
 $ cd $SIM_HOME
 $ make run
 ```
-
-### 4. 运行测试程序
-下面提供了多个可以运行测试程序的命令，选择其中一部分运行即可
-
-
-运行第一个测试程序：
+### 4. 修复riscv32编译错误
+第一次运行下面的命令，会出现一个编译错误，我们来修复它。
 ``` shell
 $ cd $TEST_HOME/cpu-tests
 $ make run ARCH=riscv32-npc ALL=dummy
 ```
-运行第二个测试程序：
-``` shell
-$ cd $TEST_HOME/cpu-tests
-$ make run ARCH=riscv32-npc ALL=string
-```
-运行第三个测试程序：
+
+
+
+如果遇到了以下错误:
+<br>`/usr/riscv64-linux-gnu/include/bits/wordsize.h:28:3: error: #error "rv32i-based targets are not supported"`
+<br>那么使用`sudo`权限修改`/usr/riscv64-linux-gnu/include/bits/wordsize.h`文件
+``` vim
+ #if __riscv_xlen == 64
+ # define __WORDSIZE_TIME64_COMPAT32 1
+ #else
+    # error "rv32i-based targets are not supported" ----->将这一行注释掉
+    # define __WORDSIZE_TIME64_COMPAT32 0           ----->在下面新增这一行
+ #endif
 ```
 
+<br>如果遇到了以下错误：
+<br>`/usr/riscv64-linux-gnu/include/gnu/stubs.h:8:11: fatal error: gnu/stubs-ilp32.h: No such file or directory`
+<br>那么使用`sudo`权限修改`/usr/riscv64-linux-gnu/include/gnu/stubs.h`文件
+<br>将文件的`# include <gnu/stubs-ilp32.h>`这段代码注释掉
+<br>
+
+
+### 5. 运行测试程序
+下面提供了多个可以运行测试程序的命令，选择其中一部分运行即可
+
+运行cpu-tests目录下的测试集程序:
 ```
+运行测试集程序的框架代码：
+cd $TEST_HOME/cpu-tests
+make run ARCH=riscv32-npc ALL=想运行的程序
+
+示例1：
+cd $TEST_HOME/cpu-tests
+make run ARCH=riscv32-npc ALL=dummy
+
+示例1：
+cd $TEST_HOME/cpu-tests
+make run ARCH=riscv32-npc
+```
+
+运行benchmarks目录下的测试集程序:
+```
+运行coremark测试:
+cd $TEST_HOME/benchmarks/coremark
+make run ARCH=riscv32-npc 
+
+运行dhrystone测试：
+cd $TEST_HOME/benchmarks/dhrystone
+make run ARCH=riscv32-npc 
+
+运行microbench测试1：
+cd $TEST_HOME/benchmarks/microbench
+make run ARCH=riscv32-npc mainargs=test
+
+运行microbench测试2：
+cd $TEST_HOME/benchmarks/microbench
+make run ARCH=riscv32-npc mainargs=train
+
+```
+
+
 
 
 ## 四、仿真框架介绍
 
+### 1. 仿真框架对于处理器最顶层模块名称`TOP_Module_Name`的要求
+为了支持所有的单周期处理器都可以接入该仿真、测试环境，我们预先设定了一个最顶层的仿真模块名称，即`TOP_Module_Name=CPU`也就是说处理器最顶层模块名称必须是`CPU`
+::: warning 仿真框架只对TOP_Module_Name有此要求，对所有的verilog代码文件名，其他模块名称均没有任何要求。
+:::
 
-1. 仿真框架介绍
+::: tip 自定义你的处理器TOP_Module_Name
+
+项目通过`simulator/Makefile`的这段代码`TOPNAME :=CPU`指定了处理器最顶层模块名称`TOP_Module_Name`必须为`CPU`
+
+通过修改`TOPNAME :=你写的模块名`, 可以指定处理器最顶层模块名称为`你写的模块名`
+
+示例： 若`simulator/Makefile`中的`TOPNAME :=AAA`, 则处理器最顶层模块名称需要为`AAA`
+::: 
 
 
+## 五、将你的处理器接入仿真框架
 
 
-## 五、接入你的处理器
 
 
 # ---------------------下面待修改--------------------------------------
