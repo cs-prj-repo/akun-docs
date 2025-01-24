@@ -3,8 +3,7 @@
 layout: home
 
 hero:
-  name: "OER"
-  text: "计算机知识分享"
+  name: "计算机知识分享"
   actions:
     - theme: brand
       text: cpu-single-cycle项目使用指南
