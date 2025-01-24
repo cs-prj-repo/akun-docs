@@ -16,7 +16,9 @@ export default defineConfig({
         text: '文档',
         items: [
           { text: 'cpu-single-cycle项目介绍', link: '/cpu-single-cycle' },
-          { text: '安装ubuntu系统', link: '/install-ubuntu' }
+          { text: '安装ubuntu系统', link: '/install-ubuntu' },
+          { text: 'riscv指令介绍', link: '/computer/cpu/riscv' },
+          { text: 'riscv相关资料', link: '/computer/cpu/riscv-information' }
         ]
       }
     ],

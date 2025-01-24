@@ -196,9 +196,10 @@ make run ARCH=riscv32-npc mainargs=train
 示例： 若`simulator/Makefile`中的`TOPNAME :=AAA`, 则处理器最顶层模块名称需要为`AAA`
 ::: 
 
-### 2. 处理器最顶层模块的信号要求
+### 2. 仿真框架对处理器最顶层模块的信号要求
 
-无论处理器顶层模块的模块名为什么，它都必须带有下面三个信号`clk`, `rst`, `cur_pc_for_simulator`
+无论处理器顶层模块的模块名是什么，它都必须带有下面三个信号`clk`, `rst`, `cur_pc_for_simulator`
+如果你对仿真框架比较熟悉，
 
 ```verilog
 module TOP_Module_Name
@@ -210,7 +211,7 @@ module TOP_Module_Name
 
 endmodule
 ```
-### 3. 如何使用仿真框架的`clk`和`rst`信号
+### 3. 仿真框架中`clk`和`rst`信号的使用要求
 
 仿真框架`clk`和`rst`信号的使用要求如下：
 
@@ -224,13 +225,16 @@ end
 always @(posedge clk) begin
     if(rst) begin        //高电平时进行复位
         regfile[0] <= 32'h0
+    end 
+    else begin
+        //other code
     end
 end
 
 ```
 
 ### 4. 仿真框架对于pc复位值的要求
-`pc`复位值必须为`80000000`
+`pc`初始复位值必须为`0x80000000`
 ``` verilog
 always @(posedge clk) begin
     if(rst) begin
@@ -239,16 +243,12 @@ always @(posedge clk) begin
 end
 ```
 
+### 5. 仿真框架的DPI-C机制说明与介绍
+仿真框架`DPI-C`机制
+
 
 
 ## 五、将你的处理器接入仿真框架
-
-
-
-
-# ---------------------下面待修改--------------------------------------
-
-
 
 
 
@@ -257,53 +257,7 @@ end
 
     `IP/mycpu目录`是存放我们single-cycle-cpu的`verilog`代码的目录，将所有的处理器代码全部放入到mycpu目录里面
 
-### 2. 将你的处理器代码接入仿真环境
 
-mycpu目录内置了一个CPU.v, 其为内置的最顶层仿真模块, **我们的处理器要在该模块中进行实例化**
-
-`CPU.v`模块内置以下四个信号
-
-(1)输入信号`clk`——仿真环境提供的时钟信号
-
-(2)输入信号`rst`——仿真环境提供的高电平复位信号
-
-(3)输出信号`cpu_pc_for_simulator`——需要和你处理器的pc值绑定
-
-(4)输出信号`regfile_for_simulator[31:0]`——需要和你处理器的寄存器信号绑定
-
-对于输出信号来说，你需要从你的处理器代码里面引出对应的信号线，和对应的输出信号绑定
-    以下是一些代码示例
-
-    //CPU模块
-    module CPU(
-        input wire clk,
-        input wire rst,
-
-        output wire [31:0] cur_pc_for_simulator,
-        output wire [31:0] regfile_for_simulator[31:0]
-    );
-        
-    endmodule
-
-    //clk的使用方法————我们只检测posedge clk
-    always @(posedge clk) begin
-
-    end
-
-
-    //rst的使用方法
-    //在rst为高位的时候，复位信号
-    always @(posedge clk) begin
-        if(rst) begin
-            regfile[0] <= 32'd0;
-        end
-    end
-
-    //绑定cpu_pc_for_simulator信号
-    assign cpu_pc_for_simulator = 处理器当前的pc值
-
-    //绑定regfile_for_simulator[31:0]信号
-    你需要从寄存器文件引出几个额外的信号线，从而将寄存器信号和regfile_for_simulator信号绑定
 
 3.修改取指模块
     
