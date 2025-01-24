@@ -205,6 +205,7 @@ $ make run ARCH=riscv32-npc ALL=dummy
 运行riscv官方指令集测试集合
 
 1. 克隆riscv官方指令集测试仓库，可以克隆到任意目录
+> 在项目提供的测试程序中，官方测试集程序是测试最完备的测试集程序，检测准确度最高
 ``` shell
 $ git clone git@github.com:cs-prj-repo/riscv-tests-am.git
 ```
