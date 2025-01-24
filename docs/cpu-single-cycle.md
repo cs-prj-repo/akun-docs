@@ -193,7 +193,7 @@ $ make run ARCH=riscv32-npc ALL=dummy
 <br>
 <br>
 
-### 5. 运行测试程序
+## 四、运行测试程序
 下面提供了多个可以运行测试程序的命令，选择其中一部分运行即可
 
 
@@ -202,7 +202,7 @@ $ make run ARCH=riscv32-npc ALL=dummy
 :::
 <br>
 
-运行riscv官方指令集测试集合
+### 运行riscv官方指令集测试集合
 
 1. 克隆riscv官方指令集测试仓库，可以克隆到任意目录
 > 在项目提供的测试程序中，官方测试集程序是测试最完备的测试集程序，检测准确度最高
@@ -235,7 +235,7 @@ make run ARCH=riscv32-npc
 <br>
 <br>
 
-2. 运行cpu-tests目录下的测试集程序:
+### 运行cpu-tests目录下的测试集程序:
 ``` shell
 #运行测试集程序的框架代码：
 cd $TEST_HOME/cpu-tests
@@ -256,7 +256,7 @@ make run ARCH=riscv32-npc
 
 <br>
 
-3. 运行benchmarks目录下的测试集程序:
+### 运行benchmarks目录下的测试集程序:
 ```shell
 #运行coremark测试:
 cd $TEST_HOME/benchmarks/coremark
@@ -276,8 +276,27 @@ make run ARCH=riscv32-npc mainargs=train
 
 ```
 
+### 运行CSR指令测试程序
+::: tip CSR测试程序注意事项
+CSR测试程序虽然已经移植，不过仿真框架还没有修改支持所有处理器都能接入，所以暂时还不能测试--->全力开发中
+:::
+当你实现了`mret`,`ecall`,`csrrw`, `csrrs`指令之后, 可以运行`yield-os`测试程序。
+<br>如果处理器实现正确，测试程序会缓慢出现字母`ABABAB`的序列。
+<br>如果处理器实现出错，这个程序不是那么的好调试，因为涉及到各种陷入，比较复杂--->待改进
 
-## 四、指定项目运行你的处理器
+执行下列命令，运行`yield-os`测试程序
+
+``` shell
+cd $TEST_HOME/csr-tests/yield-os
+make run ARCH=riscv32-npc
+```
+
+
+
+
+
+
+## 五、指定项目运行你的处理器
 
 首先在cpu-single-cycle/IP目录下面新建一个目录，目录的名称不作任何要求。
 <br>下文使用`your_cpu_dir`进行代指, 将你的处理器代码全部放到`your_cpu_dir`目录下面
@@ -297,7 +316,7 @@ make run ARCH=riscv32-npc mainargs=train
 :::
 
 
-## 四、将你的处理器接入仿真环境
+## 六、将你的处理器接入仿真环境
 为了支持所有的单周期处理器都可以接入该仿真、测试环境, 仿真环境对运行的处理器有一定的要求
 
 ### 1. 仿真框架对于处理器最顶层模块名称`TOP_Module_Name`的要求
@@ -433,7 +452,7 @@ end
 <br>
 
 
-## 五、再次运行项目
+## 七、再次运行项目
 
 
 当将处理器按照文档要求接入到仿真环境以后，我们的准备工作就一切就绪了，下面就要开始在该项目框架下验证我们自己的处理器了。
@@ -447,7 +466,7 @@ $ make run
 
 
 
-## 六、[失败调试]如何查看和阅读波形
+## 八、[失败调试]如何查看和阅读波形
 
 当处理器运行出现一个红色的`HIT BAD TRAP`字样时，说明处理器执行的指令出错。
 当指令出错的时候，我们首先可以根据Difftest打印的错误信息来追踪错误指令，当确定了错误的指令后，可以通过查看波形来排查错误。
