@@ -33,8 +33,30 @@ $ git clone git@github.com:cs-prj-repo/cpu-pipeline.git
 
 由于Difftest检测的是一条指令执行后的`寄存器信息`和`PC`, 一条指令执行后，pc会变为`pc+4`或`pc的跳转地址`，所以我们也要让这条指令执行完毕后的pc值即`pre_pc`随着流水线一起流动到达写回阶段。
 
+::: warning 注意-向仿真环境传递的信号
+
+`pre_pc`信号:
+<br>向仿真信号传递的`pre_pc`值需要是正确的`pre_pc`值。
+<br>如果一条分支指令会跳转，那么`pre_pc`需要是跳转后的地址.
+
+`pc`信号:
+<br> 是在流水线里面流到写回阶段的那条指令的pc值,不是当前PC寄存器的pc值
+
+`commit`信号:
+<br>可以IP/pipeline-cpu/fetch.v
+
+`instr`信号
+<br>是在流水线里面流到写回阶段的那条指令
+
+:::
 具体信号可以参考下图
 ![alt text](image.png)
+## DPI-C如何接入
+
+见`fetch.v`、`memory.v`、`regfile.b`、`memory.v`、`write_back.b`
+
+
+
 ## 流水线的气泡指令
 
 流水线的气泡指令建议为`addi x0, x0, 0`，其十六进制为`0x00000013`,其二进制为`00000000000000000000000000010011`。
