@@ -1,5 +1,5 @@
 ---
-title: 安装ubuntu系统
+title: ubuntu系统安装
 editLink: true
 layout: doc
 ---

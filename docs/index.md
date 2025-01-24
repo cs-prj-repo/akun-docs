@@ -9,6 +9,9 @@ hero:
       text: cpu-single-cycle项目使用指南
       link: /cpu-single-cycle
     - theme: brand
+      text: cpu-pipeline项目使用指南
+      link: /cpu-pipeline
+    - theme: brand
       text: ubuntu系统安装
       link: /install-ubuntu
     - theme: brand

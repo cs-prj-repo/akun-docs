@@ -24,7 +24,6 @@ cpu-single-cycle
 ├── software-test                    # 测试处理器的软件程序
 │    ├── benchmarks                     # benchmark测试程序
 │    │   cpu-tests                      # 简单cpu测试程序
-│    └── riscv-arch-test                # riscv官方测试cpu程序(待添加中)
 ├── simulator                        # 处理器模拟仿真框架
 │    ├── include                        
 │    │   nemu                           # 用于difftest的nemu动态链接库目录
@@ -105,20 +104,73 @@ export AM_HOME=$CPU_HOME/abstract-machine    #直接复制即可
 export TEST_HOME=$CPU_HOME/software-test     #直接复制即可
 ```
 
-### 3. 运行框架内置处理器
-在终端中执行下面命令，尝试运行项目。
+### 3. 运行项目框架默认的处理器和内置程序
+在终端中执行下面命令，尝试使用项目框架默认的处理器运行内置程序。
 ``` shell
 $ cd $SIM_HOME
 $ make run
 ```
+如果项目运行后出现一个绿色的`HIT GOOD TRAP`，说明程序运行成功，一切正常。
+
+如果项目运行后出现编译报错，请自行修复，或联系我们并提供报错截图，帮助我们修复错误。
+
+如果项目运行后出现一个红色的`HIG BAD TRAP`, 说明处理器执行指令时出错，一般是处理器实现问题。
+
+
+::: tip 处理器运行的内置程序
+当在`simluator`目录下执行`make run`时，无论项目指定哪个处理器运行，都会运行一个内置的程序
+这段内置程序指令存放在`simulator/src/monitor/monitor.c`文件下，其名称为`static const uint32_t img[]`
+
+在运行你的处理器的时候，你可以根据自己的需要来修改此处代码来运行指定的程序指令
+
+注意内置程序指令一定要包含一条`ebreak`指令
+:::
+
+
+::: tip 仿真环境如何判定程序执行结束
+项目框架通过指定`ebreak`指令为程序结束的指令来判断一个程序是否运行结束。
+
+在执行程序时，项目框架会在每个程序的最后注入一条`ebraek`指令来达到该效果。
+
+由于内置程序是用户可以自行修改的，所以内置程序的`ebreak`指令需要由用户自己添加。
+:::
+
+::: tip 开启/关闭Difftest
+项目通过DIfftest技术来验证处理器实现是否正确。
+
+项目默认Difftest处于开启状态
+
+
+在`simulator/inlcude/utils/open_sim_difftest.h`文件中
+可以通过注释或者解开注释`#define CONFIG_DIFFTEST 1`来打开或关闭Difftest功能
+
+注意，开启Difftest会减缓程序运行时间，在进行benchmarck程序对处理器进行跑分时，建议关闭Difftest
+:::
+
+
+::: tip 开启/关闭波形追踪
+在处理器运行时，仿真框架可以追踪到处理器运行程序的波形信息。
+
+项目默认波形追踪处于关闭状态
+
+在`simulator/inlcude/utils/open_sim_difftest.h`文件中
+可以通过注释或者解开注释`#define CONFIG_NPC_OPEN_SIM 1`来打开或关闭波形追踪功能
+
+谨记，如果开启波形运行大型，则会生成非常大的波形文件，高达1G-50GB，有可能会损害磁盘
+
+因此，当运行一些大型程序时，比如benchmark，一定不要开启波形追踪。
+
+如何使用更小的波形文件格式，如fst，正在开发中。
+:::
+
+
+
 ### 4. 修复riscv32编译错误
 第一次运行下面的命令，会出现一个编译错误，我们来修复它。
 ``` shell
 $ cd $TEST_HOME/cpu-tests
 $ make run ARCH=riscv32-npc ALL=dummy
 ```
-
-
 
 如果遇到了以下错误:
 <br>`/usr/riscv64-linux-gnu/include/bits/wordsize.h:28:3: error: #error "rv32i-based targets are not supported"`
@@ -139,48 +191,114 @@ $ make run ARCH=riscv32-npc ALL=dummy
 <br>
 
 
+<br>
+<br>
+
 ### 5. 运行测试程序
 下面提供了多个可以运行测试程序的命令，选择其中一部分运行即可
 
-运行cpu-tests目录下的测试集程序:
+
+::: tip 运行程序对处理器的要求
+由于我们的测试程序是可运行的程序，一个可运行程序要求处理器必须能够执行`auipc`, `jal`,`addi`指令
+:::
+<br>
+
+运行riscv官方指令集测试集合
+::: tip riscv-test-am/Makefile中的信息
+`TEST_ISA = i m`表明我们测试的指令集是RV-IM，可以根据需要修改需要支持的指令集
+
+`SUPPORTED_AM_ISA = riscv64 riscv32 riscv64e riscv32e riscv32mini`表明我们支持这么多riscvg架构
+:::
+
+```shell
+#克隆项目到一个任意目录，目录位置不作要求
+#该项目主要用于测试验证处理器实现是否正确
+git clone git@github.com:cs-prj-repo/riscv-tests-am.git
+
+#运行riscv官方指令集测试程序：
+cd xxx/riscv-tests-am
+make run ARCH=riscv32-npc ALL=想要测试的指令
+
+#示例1-测试add指令实现是否正确：
+cd xxx/riscv-tests-am
+make run ARCH=riscv32-npc ALL=add
+
+#示例2-测试sub指令实现是否正确
+cd xxx/riscv-tests-am
+make run ARCH=riscv32-npc ALL=sub
+
+#示例3-测试所有指令实现是否正确
+cd xxx/riscv-tests-am
+make run ARCH=riscv32-npc
 ```
-运行测试集程序的框架代码：
+
+<br>
+<br>
+
+运行cpu-tests目录下的测试集程序:
+``` shell
+#运行测试集程序的框架代码：
 cd $TEST_HOME/cpu-tests
 make run ARCH=riscv32-npc ALL=想运行的程序
 
-示例1：
+#示例2-运行string程序：
 cd $TEST_HOME/cpu-tests
 make run ARCH=riscv32-npc ALL=dummy
 
-示例1：
+#示例1-运行dummy程序：
+cd $TEST_HOME/cpu-tests
+make run ARCH=riscv32-npc ALL=dummy
+
+#示例3-运行所有程序：
 cd $TEST_HOME/cpu-tests
 make run ARCH=riscv32-npc
 ```
 
+<br>
+
 运行benchmarks目录下的测试集程序:
-```
-运行coremark测试:
+```shell
+#运行coremark测试:
 cd $TEST_HOME/benchmarks/coremark
 make run ARCH=riscv32-npc 
 
-运行dhrystone测试：
+#运行dhrystone测试：
 cd $TEST_HOME/benchmarks/dhrystone
 make run ARCH=riscv32-npc 
 
-运行microbench测试1：
+#运行microbench测试1：
 cd $TEST_HOME/benchmarks/microbench
 make run ARCH=riscv32-npc mainargs=test
 
-运行microbench测试2：
+#运行microbench测试2：
 cd $TEST_HOME/benchmarks/microbench
 make run ARCH=riscv32-npc mainargs=train
 
 ```
 
 
+## 四、指定项目运行你的处理器
+
+首先在cpu-single-cycle/IP目录下面新建一个目录，目录的名称不作任何要求。
+<br>下文使用`your_cpu_dir`进行代指, 将你的处理器代码全部放到`your_cpu_dir`目录下面
+::: warning 注意define.v文件必须和你的处理器同在一个目录下面
+:::
+
+最后再通过simulator/Makefile中的`CPU_DIR`变量为你的处理器目录路径，来指定项目运行你的处理器
+
+::: tip 示例
+
+项目通过`simulator/Makefile`中的`CPU_DIR :=$(CPU_HOME)/IP/single-cycle`指定了项目会运行`single-cycle目录下的处理器`
+
+通过修改`CPU_DIR :=$(CPU_HOME)/IP/你的处理器目录名字`, 可以指定项目运行`你的处理器`
+
+<br>示例： 若`simulator/Makefile`中的`CPU_DIR :=$(CPU_HOME)/IP/AAA`, 则项目会运行`AAA`目录下的处理器
+
+:::
 
 
-## 四、仿真框架介绍及要求
+## 四、将你的处理器接入仿真环境
+为了支持所有的单周期处理器都可以接入该仿真、测试环境, 仿真环境对运行的处理器有一定的要求
 
 ### 1. 仿真框架对于处理器最顶层模块名称`TOP_Module_Name`的要求
 为了支持所有的单周期处理器都可以接入该仿真、测试环境，我们预先设定了一个最顶层的仿真模块名称，即`TOP_Module_Name=CPU`也就是说处理器最顶层模块名称必须是`CPU`
@@ -189,12 +307,13 @@ make run ARCH=riscv32-npc mainargs=train
 
 ::: tip 自定义你的处理器TOP_Module_Name
 
-项目通过`simulator/Makefile`的这段代码`TOPNAME :=CPU`指定了处理器最顶层模块名称`TOP_Module_Name`必须为`CPU`
+项目通过`simulator/Makefile`中的`TOPNAME :=CPU`指定了处理器最顶层模块名称`TOP_Module_Name`必须为`CPU`
 
 通过修改`TOPNAME :=你写的模块名`, 可以指定处理器最顶层模块名称为`你写的模块名`
 
-示例： 若`simulator/Makefile`中的`TOPNAME :=AAA`, 则处理器最顶层模块名称需要为`AAA`
+<br>示例： 若`simulator/Makefile`中的`TOPNAME :=AAA`, 则处理器最顶层模块名称需要为`AAA`
 ::: 
+<br>
 
 ### 2. 仿真框架对处理器最顶层模块的信号要求
 
@@ -211,6 +330,8 @@ module TOP_Module_Name
 
 endmodule
 ```
+<br>
+
 ### 3. 仿真框架中`clk`和`rst`信号的使用要求
 
 仿真框架`clk`和`rst`信号的使用要求如下：
@@ -232,117 +353,101 @@ always @(posedge clk) begin
 end
 
 ```
+<br>
 
 ### 4. 仿真框架对于pc复位值的要求
 `pc`初始复位值必须为`0x80000000`
 ``` verilog
 always @(posedge clk) begin
     if(rst) begin
-        pc <= 32'h80000000;
+        pc <= 32'h80000000; //32位操作系统
     end
 end
 ```
+<br>
 
-### 5. 仿真框架的DPI-C机制说明与介绍
-仿真框架`DPI-C`机制
+### 5. 接入仿真框架的DPI-C机制
 
+我们使用Verilator的DPI-C机制将处理器接入到仿真环境，并访问仿真环境的内存。
 
+<br>
 
-## 五、将你的处理器接入仿真框架
+#### 对于取指阶段
+由于内存是仿真环境提供的，当我们从内存中进行取指时，需要通过DPI-C机制访问内存，使用方法参考下列代码
+```verilog
+module fetch(
+    //其他信号
+);
 
-
-
-
-### 1. **将你的处理器代码移动直`IP/mycpu目录`**:
-
-    `IP/mycpu目录`是存放我们single-cycle-cpu的`verilog`代码的目录，将所有的处理器代码全部放入到mycpu目录里面
-
-
-
-3.修改取指模块
-    
-    你的处理器的取指模块要按照下面的逻辑进行取指，如果你的处理器有其他额外的信号，不会影响该逻辑过程。
-    ```
-    module fetch(
-
-    );
-    import "DPI-C" function int  dpi_mem_read 	(input int addr  , input int len);
-    import "DPI-C" function void dpi_ebreak		(input int pc);
-
-    assign 处理器取出的的指令 = dpi_mem_read(处理器取指的pc，, 4);
-
-    always @(*) begin
-        if(处理器取出的的指令 == 32'h00100073) begin
-            dpi_ebreak(处理器取指的pc，);
-        end
-    end
-    ```
-4.修改访存模块
-
-    你的处理器的访存模块需要按照下列的逻辑进行访存，如果你的处理器有其他额外的信号，不会影响该逻辑过程。
-
-    ```
-    module memory (
-        input  wire                 clk,
-        input  wire                 rst,
-        input  wire                 xxx
-    );
-    import "DPI-C" function void dpi_mem_write(input int addr, input int data, int len);
-    import "DPI-C" function int  dpi_mem_read (input int addr  , input int len);
-
-    //从内存中读出数据
-    wire [31:0] 读出来的数据;
-    读出来的数据= dpi_mem_read(你要读取的内存地址, 4);
-
-    //往内存中写入数据
-    always @(posedge clk) begin
-        if(如果需要写一个字节) begin
-            dpi_mem_write(要写入的地址, 要写入的数据, 1);
-        end
-        else if(如果需要写两个字节) begin
-            dpi_mem_write(要写入的地址, 要写入的数据, 2);		
-        end
-        else if(如果需要写4个字节) begin
-            dpi_mem_write(要写入的地址, 要写入的数据, 4);				
-        end
-    end
-
-    endmodule //moduleName
-5.修改pc值
-
-    `pc`初始值需要设置为0x80000000
-    ```
-    always @(posedge clk) begin
-    if(rst) begin
-        pc <= 32'h80000000;
-    end
-
-    ```
-
-
-### 3. 使用我们自己的处理器
-
-将`mycpu`目录的名字修改为`single-cycle-cpu`
-
-### 4. 启动difftest
-
-执行下面的命令，启动difftest，用于检测我们的处理器是否正确。
-
-```
-cd $SIM_HOME
-make menuconfig
-执行完后出现一个界面框，上下移动方向键，在[]Open Difftest这一栏里面，选中，然后选择save并退出。
+import "DPI-C" function int  dpi_mem_read 	(input int addr  , input int len);
+assign instr = dpi_mem_read(pc, 4);
+endmodule
 ```
 
-### 3. 测试你的处理器
-    运行cpu-tests目录下的测试程序
+<br>
 
-### 4. 对你的处理器进行benchmark跑分
-    ！！！！！！一定要关闭Difftest之后，再进行benchmark跑分！！！！！！
-    运行benchmark下面的测试集程序
-    
+#### 对于寄存器文件的访问
+由于仿真环境在进行指令验证的时候，需要获取到寄存器文件的内存，所以我们要通过DPI-C机制将寄存器文件信号传递给仿真环境，使用方法参考下列代码
+```verilog
+module regfile(
+    //其他信号
+);
+
+reg [31:0] regfile[31:0];
+import "DPI-C" function void dpi_read_regfile(input logic [31 : 0] a []);
+initial begin
+	dpi_read_regfile(regfile);
+end
+endmodule
+```
+
+<br>
+
+#### 对于内存的访问
+当处理器需要读写内存的时候，也需要通过DPI-C机制从仿真环境获取到内存数据，使用方法参考下列代码
+
+```verilog
+module memory(
+    //其他信号
+);
+
+import "DPI-C" function void dpi_mem_write(input int addr, input int data, int len);
+import "DPI-C" function int  dpi_mem_read (input int addr  , input int len);
+
+//读取内存，每次读取4个字节，然后根据需要，再对读出来的数据进行处理
+wire 从内存中读出来的数据(32bit) = dpi_mem_read(要读取的内存地址, 4);
+
+//写入
+always @(posedge clk) begin
+	if(如果要从内存中读取一个字节) begin
+		dpi_mem_write(写入地址, 要写入的数据(32bit), 1);
+	end
+	else if(如果要从内存中读取两个字节) begin
+		dpi_mem_write(要写入的地址, 要写入的数据(32bit), 2);		
+	end
+	else if(如果要从内存中读取四个字节) begin
+		dpi_mem_write(要写入的地址, 要写入的数据(32bit), 4);				
+	end
+end
+```
+<br>
+
+
+## 五、再次运行项目
+
+
+当将处理器按照文档要求接入到仿真环境以后，我们的准备工作就一切就绪了，下面就要开始在该项目框架下验证我们自己的处理器了。
+
+执行下面命令，再次运行项目
+``` shell
+$ cd $SIM_HOME
+$ make run
+```
+当项目运行成功后，使用上文中的riscv官方指令测试集即`riscv-tests-am`来验证你的处理器实现是否正确
 
 
 
-### 其它事项
-更多测试集程序正在添加中
+## 补充——如何查看波形
+
+
+撰写中
