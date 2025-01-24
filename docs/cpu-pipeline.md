@@ -6,6 +6,14 @@ layout: doc
 
 # {{ $frontmatter.title }}
 
+## 克隆项目
+
+```shell
+$ git clone git@github.com:cs-prj-repo/cpu-pipeline.git
+```
+
+
+
 该项目只支持总控式五级流水线，不支持握手信号的五级流水线。
 
 ## 五级流水线需要的仿真信号
