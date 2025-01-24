@@ -90,7 +90,7 @@ $ sudo apt-get install g++-riscv64-linux-gnu binutils-riscv64-linux-gnu
 
 ### 1. 获取项目代码
 ``` shell
-$ git clone git@github.com:akun0311/cpu-single-cycle.git
+$ git clone git@github.com:cs-prj-repo/cpu-single-cycle.git
 ```
 
 ### 2. 设置环境变量
@@ -136,10 +136,9 @@ $ make run
 :::
 
 ::: tip 开启/关闭Difftest
-项目通过DIfftest技术来验证处理器实现是否正确。
+项目需要使用DIfftest技术来验证处理器实现是否正确。
 
-项目默认Difftest处于开启状态
-
+项目中Difftest默认处于开启状态
 
 在`simulator/inlcude/utils/open_sim_difftest.h`文件中
 可以通过注释或者解开注释`#define CONFIG_DIFFTEST 1`来打开或关闭Difftest功能
@@ -204,17 +203,17 @@ $ make run ARCH=riscv32-npc ALL=dummy
 <br>
 
 运行riscv官方指令集测试集合
+
+1. 克隆riscv官方指令集测试仓库，可以克隆到任意目录
+``` shell
+$ git clone git@github.com:cs-prj-repo/riscv-tests-am.git
+```
 ::: tip riscv-test-am/Makefile中的信息
 `TEST_ISA = i m`表明我们测试的指令集是RV-IM，可以根据需要修改需要支持的指令集
-
-`SUPPORTED_AM_ISA = riscv64 riscv32 riscv64e riscv32e riscv32mini`表明我们支持这么多riscvg架构
+<br>`SUPPORTED_AM_ISA = riscv64 riscv32 riscv64e riscv32e riscv32mini`表明我们支持这么多riscvg架构
 :::
 
 ```shell
-#克隆项目到一个任意目录，目录位置不作要求
-#该项目主要用于测试验证处理器实现是否正确
-git clone git@github.com:cs-prj-repo/riscv-tests-am.git
-
 #运行riscv官方指令集测试程序：
 cd xxx/riscv-tests-am
 make run ARCH=riscv32-npc ALL=想要测试的指令
@@ -235,7 +234,7 @@ make run ARCH=riscv32-npc
 <br>
 <br>
 
-运行cpu-tests目录下的测试集程序:
+2. 运行cpu-tests目录下的测试集程序:
 ``` shell
 #运行测试集程序的框架代码：
 cd $TEST_HOME/cpu-tests
@@ -256,7 +255,7 @@ make run ARCH=riscv32-npc
 
 <br>
 
-运行benchmarks目录下的测试集程序:
+3. 运行benchmarks目录下的测试集程序:
 ```shell
 #运行coremark测试:
 cd $TEST_HOME/benchmarks/coremark
@@ -447,7 +446,52 @@ $ make run
 
 
 
-## 补充——如何查看波形
+## 六、[失败调试]如何查看和阅读波形
+
+当处理器运行出现一个红色的`HIT BAD TRAP`字样时，说明处理器执行的指令出错。
+当指令出错的时候，我们首先可以根据Difftest打印的错误信息来追踪错误指令，当确定了错误的指令后，可以通过查看波形来排查错误。
 
 
-撰写中
+### 1. Difftest检测和波形信息说明
+
+我们使用的Difftest是在每一条指令执行完毕后，对比一个`参考处理器`和`你的处理器`的寄存器和`PC`状态信息。
+
+由于大多数指令都会修改寄存器和PC的状态，所以当这样的一条执行完毕后，我们就可以立即比对他们的寄存器和PC状态信息，如果发现处理器实现出错，那么立刻就可以捕捉到这样的错误。
+
+一个例外是Load和Store指令。
+<br>Store指令是将寄存器的数据写入到内存中，并不会更改寄存器的状态，所以Difftest无法不会对Store指令进行检测。
+<br>Load指令是将内存里面的数据读取到寄存器中，当它发生错误时，有可能不是Load指令自身的问题，而是Store指令出了错。
+<br>按照大多数程序执行时的特性，存到内存里面的数据会很快会被指令取出来使用，如果在Load指令将数据从内存里面取到寄存器时出现错误，那么可以推测是Load或Store指令出错。
+
+依据Difftest的机制，当Difftest捕捉到错误的时候，我们结束程序的波形追踪，此时波形文件的最后一条波形就是DIfftest出错的那条指令。
+<br>对于非Load和非Store指令来说，波形文件的最后一条波形就是出错的那条指令
+<br>对于Load指令来说，有可能不是Load指令出错，而是Store指令出错。如果是Store指令的错误，需要去看最后一条波形的前一些周期，即Store指令的波形。
+
+::: tip Diffetst总结
+对于非Load和非Store指令来说，波形文件的最后一条波形就是出错的那条指令
+
+对于Load指令来说，有可能不是Load指令出错，而是Store指令出错。如果是Store指令的错误，需要去看最后一条波形的前一些周期，即Store指令的波形。
+:::
+
+::: tip Diffetst总结
+对于非Store和非Load指令，可以立刻捕获错误，判断其实现是否正确。
+对于，捕获到Store指令出错的信息，会比真正发生错误的时刻晚一些。
+:::
+
+::: tip 波形文件总结
+对于非Load和非Store指令来说，波形文件的最后一条波形就是出错的那条指令
+对于Load指令来说，有可能不是Load指令出错，而是Store指令出错。如果是Store指令的错误，需要去看波形文件最后一条波形的前一些周期的Store指令的波形。
+:::
+
+
+
+
+### 2. 查看波形的方法
+切换到`simulator`目录，然后执行`make sim`命令就可以查看波形
+
+我想在其他测试程序目录可以直接查看波形，该如何办？—该功能正在支持中，需要一些时间
+
+### 3. 如何高效查看波形
+
+`gtkwave`在左下角有一个信号搜索框可以进行筛选，可以筛选出自己想要看的信号波形。
+
