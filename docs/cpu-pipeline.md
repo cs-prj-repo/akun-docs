@@ -6,343 +6,45 @@ layout: doc
 
 # {{ $frontmatter.title }}
 
+该项目只支持总控式五级流水线，不支持握手信号的五级流水线。
 
+## 五级流水线需要的仿真信号
 
-## 一、项目介绍
-该项目是一个RISC-V单周期处理器仿真、测试框架。你可以将你的单周期处理器接入到该框架中，用于验证自己的处理器实现是否正确，也可以在自己的处理器上运行一些简单的软件程序。
+由于使用Difftest机制是让`参考处理器`和`你的处理器`对比同一条指令执行完后的寄存器状态和`pc`信息.
+<br>对于单周期处理器来说，可以很简单的做到，因为单周期处理器每个周期就执行一条指令。
+<br>对于五级流水线处理器而言，一个时钟周期最多会有五条指令在执行，我们很难判断当前执行的指令是哪一个，哪一条指令执行完毕了。
 
+为了确保我们可以捕捉到流水线处理器中真正执行完毕的那条指令，我们要对框架的仿真信号做出一定的修改。
 
-支持的指令集:RV32I(不含特权指令)
+<br>项目使用的策略如下，当一个指令到达了写回阶段的时，Difftest就会认为这条指令执行完毕了， 接着就会对比`你的处理器`和`参考处理器`的寄存器状态。
+在具体实现上，我们使用一个1bit的commit信号，在取指阶段取出来指令后同时将这个commit设置为1，而后随着流水线一起流动，当commit到达写回阶段时，我们就判断出有一条指令执行完毕了。
+(气泡Bubble的commit永远设置为0)
 
-**项目主要目录如下**:
-```
-cpu-single-cycle
-├── abstract-machine                 # 裸机运行时环境(目前忽略它)
-├── IP                               # 处理器代码目录
-│    ├── mycpu                          # 此目录用于接入你的单周期处理器
-│    └── single-cycle                   # 项目内置的一个单周期处理器(verilog)
-├── software-test                    # 测试处理器的软件程序
-│    ├── benchmarks                     # benchmark测试程序
-│    │   cpu-tests                      # 简单cpu测试程序
-│    └── riscv-arch-test                # riscv官方测试cpu程序(待添加中)
-├── simulator                        # 处理器模拟仿真框架
-│    ├── include                        
-│    │   nemu                           # 用于difftest的nemu动态链接库目录
-│    │   src                            # 源代码目录
-│    └── Makefile                       
-├── Makefile                         
-└── README.md
+虽然我们可以通过commit信号知道有一条指令执行完毕，但是仿真环境无法知道具体是哪条指令，所以我们也要让具体执行的`指令pc`和指令`instr`随着流水线一起流动到达写回阶段，并传递给仿真框架，让仿真框架知道执行了哪条指令。
 
-```
-- **相关知识点**
 
-    [CPU测试程序benchmark](https://en.wikipedia.org/wiki/Benchmark_(computing))
+由于Difftest检测的是一条指令执行后的`寄存器信息`和`PC`, 一条指令执行后，pc会变为`pc+4`或`pc的跳转地址`，所以我们也要让这条指令执行完毕后的pc值即`pre_pc`随着流水线一起流动到达写回阶段。
 
-    [处理器模拟器](https://en.wikipedia.org/wiki/CPU_Sim)
+具体信号可以参考下图
+![alt text](image.png)
+## 流水线的气泡指令
 
-    [裸机运行时环境](https://en.wikipedia.org/wiki/Runtime_system)
+流水线的气泡指令建议为`addi x0, x0, 0`，其十六进制为`0x00000013`,其二进制为`00000000000000000000000000010011`。
 
-##  二、实验环境搭建
+## Difftest检测和波形信息说明
 
-### 配置一览
-- 操作系统： ubuntu 22.04(LTS), 非root账户
-- 仿真工具： Verilator、GTKwave
-- 编译工具： RISC-V
-- 编程语言： Verilog HDL、C语言
+在单周期处理中，由于处理器在一个周期只执行一条指令，所以错误指令被Difftest捕捉时，一般为波形文件的最后一条指令。
 
-### 安装ubuntu系统
+不过在流水线处理器中，当错误指令进行到写回阶段并被Difftest捕捉到时，仿真框架早已追踪了取指，译码，执行，访存指令的波形信息。
 
-[点击此处查看相关资料](install-ubuntu.md)
-<br>
-::: tip 记得更换Ubuntu软件源
+由于我们是在Difftest捕捉到错误并结束波形追踪时，此时仿真框架早已追踪了几条经历过译码、执行、访存指令。
+<br>因此和单周期不同，Difftest捕捉的出错的指令通常不是波形文件的最后一条波形，而是最后一条波形前面4-5个`clk`的波形。
+<br>由于流水线中有Stall和Bubble的存在，则会使得波形文件更加复杂, 一般真正出错的指令为波形文件最后一条波形前面4-20个`clk`的波形。
 
-由于 Ubuntu 默认软件源在国内访问速度较慢，我们建议大家更换为国内的软件源，例如[北外镜像源](https://mirrors.bfsu.edu.cn/help/ubuntu/)。
+以上是错误指令在波形文件的大概位置，具体是哪一条波形，我们还需要通过`pc`和`instr`进行准确定位。
 
-在更换软件源后，请使用 sudo apt update 命令更新索引。
-::: 
+对于Difftest捕捉Store指令和Load指令出错的机制，和单周期处理器类似。
 
 
 
-
-### 安装Verilator v5.008
-
-使用[官方教程](https://verilator.org/guide/latest/install.html#git-quick-install)或者google搜索进行安装
-
-### 安装GTKwave
-```shell
-$ sudo apt install gtkwave
-```
-
-### 安装库文件和编译工具
-```shell
-$ sudo apt-get install build-essential
-$ sudo apt-get install libreadline-dev
-$ sudo apt-get install llvm-dev
-$ sudo apt-get install g++-riscv64-linux-gnu binutils-riscv64-linux-gnu
-```
-
-::: tip
-目前仍有一部分工具, 暂未提供安装命令，后续会陆续添加支持。
-::: 
-
-### 
-
-## 三、初次运行项目
-
-### 1. 获取项目代码
-``` shell
-$ git clone git@github.com:akun0311/cpu-single-cycle.git
-```
-
-### 2. 设置环境变量
-在你的`~/.bashrc`文件当中添加如下的环境变量，添加完成后，执行`source ~/.bashrc`命令
-
-``` shell
-
-export CPU_HOME=cpu-single-cycle目录的绝对路径 #复制后记得修改
-export SIM_HOME=$CPU_HOME/simulator          #直接复制即可
-export AM_HOME=$CPU_HOME/abstract-machine    #直接复制即可
-export TEST_HOME=$CPU_HOME/software-test     #直接复制即可
-```
-
-### 3. 运行框架内置处理器
-在终端中执行下面命令，尝试运行项目。
-``` shell
-$ cd $SIM_HOME
-$ make run
-```
-### 4. 修复riscv32编译错误
-第一次运行下面的命令，会出现一个编译错误，我们来修复它。
-``` shell
-$ cd $TEST_HOME/cpu-tests
-$ make run ARCH=riscv32-npc ALL=dummy
-```
-
-
-
-如果遇到了以下错误:
-<br>`/usr/riscv64-linux-gnu/include/bits/wordsize.h:28:3: error: #error "rv32i-based targets are not supported"`
-<br>那么使用`sudo`权限修改`/usr/riscv64-linux-gnu/include/bits/wordsize.h`文件
-``` vim
- #if __riscv_xlen == 64
- # define __WORDSIZE_TIME64_COMPAT32 1
- #else
-    # error "rv32i-based targets are not supported" ----->将这一行注释掉
-    # define __WORDSIZE_TIME64_COMPAT32 0           ----->在下面新增这一行
- #endif
-```
-
-<br>如果遇到了以下错误：
-<br>`/usr/riscv64-linux-gnu/include/gnu/stubs.h:8:11: fatal error: gnu/stubs-ilp32.h: No such file or directory`
-<br>那么使用`sudo`权限修改`/usr/riscv64-linux-gnu/include/gnu/stubs.h`文件
-<br>将文件的`# include <gnu/stubs-ilp32.h>`这段代码注释掉
-<br>
-
-
-### 5. 运行测试程序
-下面提供了多个可以运行测试程序的命令，选择其中一部分运行即可
-
-运行cpu-tests目录下的测试集程序:
-```
-运行测试集程序的框架代码：
-cd $TEST_HOME/cpu-tests
-make run ARCH=riscv32-npc ALL=想运行的程序
-
-示例1：
-cd $TEST_HOME/cpu-tests
-make run ARCH=riscv32-npc ALL=dummy
-
-示例1：
-cd $TEST_HOME/cpu-tests
-make run ARCH=riscv32-npc
-```
-
-运行benchmarks目录下的测试集程序:
-```
-运行coremark测试:
-cd $TEST_HOME/benchmarks/coremark
-make run ARCH=riscv32-npc 
-
-运行dhrystone测试：
-cd $TEST_HOME/benchmarks/dhrystone
-make run ARCH=riscv32-npc 
-
-运行microbench测试1：
-cd $TEST_HOME/benchmarks/microbench
-make run ARCH=riscv32-npc mainargs=test
-
-运行microbench测试2：
-cd $TEST_HOME/benchmarks/microbench
-make run ARCH=riscv32-npc mainargs=train
-
-```
-
-
-
-
-## 四、仿真框架介绍及要求
-
-### 1. 仿真框架对于处理器最顶层模块名称`TOP_Module_Name`的要求
-为了支持所有的单周期处理器都可以接入该仿真、测试环境，我们预先设定了一个最顶层的仿真模块名称，即`TOP_Module_Name=CPU`也就是说处理器最顶层模块名称必须是`CPU`
-::: warning 仿真框架只对TOP_Module_Name有此要求，对所有的verilog代码文件名，其他模块名称均没有任何要求。
-:::
-
-::: tip 自定义你的处理器TOP_Module_Name
-
-项目通过`simulator/Makefile`的这段代码`TOPNAME :=CPU`指定了处理器最顶层模块名称`TOP_Module_Name`必须为`CPU`
-
-通过修改`TOPNAME :=你写的模块名`, 可以指定处理器最顶层模块名称为`你写的模块名`
-
-示例： 若`simulator/Makefile`中的`TOPNAME :=AAA`, 则处理器最顶层模块名称需要为`AAA`
-::: 
-
-### 2. 仿真框架对处理器最顶层模块的信号要求
-
-无论处理器顶层模块的模块名是什么，它都必须带有下面三个信号`clk`, `rst`, `cur_pc_for_simulator`
-如果你对仿真框架比较熟悉，
-
-```verilog
-module TOP_Module_Name
-(
-    input  wire         clk,                    //该信号是仿真框架提供的时钟信号
-    input  wire         rst,                    //该信号是仿真框架提供的复位信号
-    output wire [31:0]  cur_pc_for_simulator    //该信号需要连接当前的pc值
-);
-
-endmodule
-```
-### 3. 仿真框架中`clk`和`rst`信号的使用要求
-
-仿真框架`clk`和`rst`信号的使用要求如下：
-
-```verilog
-//我们只捕捉时钟上升沿的信号进行处理，示例如下
-always @(posedge clk) begin
-
-end
-
-//rst在高电平时进行复位
-always @(posedge clk) begin
-    if(rst) begin        //高电平时进行复位
-        regfile[0] <= 32'h0
-    end 
-    else begin
-        //other code
-    end
-end
-
-```
-
-### 4. 仿真框架对于pc复位值的要求
-`pc`初始复位值必须为`0x80000000`
-``` verilog
-always @(posedge clk) begin
-    if(rst) begin
-        pc <= 32'h80000000;
-    end
-end
-```
-
-### 5. 仿真框架的DPI-C机制说明与介绍
-仿真框架`DPI-C`机制
-
-
-
-## 五、将你的处理器接入仿真框架
-
-
-
-
-### 1. **将你的处理器代码移动直`IP/mycpu目录`**:
-
-    `IP/mycpu目录`是存放我们single-cycle-cpu的`verilog`代码的目录，将所有的处理器代码全部放入到mycpu目录里面
-
-
-
-3.修改取指模块
-    
-    你的处理器的取指模块要按照下面的逻辑进行取指，如果你的处理器有其他额外的信号，不会影响该逻辑过程。
-    ```
-    module fetch(
-
-    );
-    import "DPI-C" function int  dpi_mem_read 	(input int addr  , input int len);
-    import "DPI-C" function void dpi_ebreak		(input int pc);
-
-    assign 处理器取出的的指令 = dpi_mem_read(处理器取指的pc，, 4);
-
-    always @(*) begin
-        if(处理器取出的的指令 == 32'h00100073) begin
-            dpi_ebreak(处理器取指的pc，);
-        end
-    end
-    ```
-4.修改访存模块
-
-    你的处理器的访存模块需要按照下列的逻辑进行访存，如果你的处理器有其他额外的信号，不会影响该逻辑过程。
-
-    ```
-    module memory (
-        input  wire                 clk,
-        input  wire                 rst,
-        input  wire                 xxx
-    );
-    import "DPI-C" function void dpi_mem_write(input int addr, input int data, int len);
-    import "DPI-C" function int  dpi_mem_read (input int addr  , input int len);
-
-    //从内存中读出数据
-    wire [31:0] 读出来的数据;
-    读出来的数据= dpi_mem_read(你要读取的内存地址, 4);
-
-    //往内存中写入数据
-    always @(posedge clk) begin
-        if(如果需要写一个字节) begin
-            dpi_mem_write(要写入的地址, 要写入的数据, 1);
-        end
-        else if(如果需要写两个字节) begin
-            dpi_mem_write(要写入的地址, 要写入的数据, 2);		
-        end
-        else if(如果需要写4个字节) begin
-            dpi_mem_write(要写入的地址, 要写入的数据, 4);				
-        end
-    end
-
-    endmodule //moduleName
-5.修改pc值
-
-    `pc`初始值需要设置为0x80000000
-    ```
-    always @(posedge clk) begin
-    if(rst) begin
-        pc <= 32'h80000000;
-    end
-
-    ```
-
-
-### 3. 使用我们自己的处理器
-
-将`mycpu`目录的名字修改为`single-cycle-cpu`
-
-### 4. 启动difftest
-
-执行下面的命令，启动difftest，用于检测我们的处理器是否正确。
-
-```
-cd $SIM_HOME
-make menuconfig
-执行完后出现一个界面框，上下移动方向键，在[]Open Difftest这一栏里面，选中，然后选择save并退出。
-```
-
-### 3. 测试你的处理器
-    运行cpu-tests目录下的测试程序
-
-### 4. 对你的处理器进行benchmark跑分
-    ！！！！！！一定要关闭Difftest之后，再进行benchmark跑分！！！！！！
-    运行benchmark下面的测试集程序
-    
-
-
-
-### 其它事项
-更多测试集程序正在添加中
+## 其他内容和单周期一模一样
