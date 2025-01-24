@@ -12,14 +12,15 @@ hero:
       text: ubuntu系统安装
       link: /install-ubuntu
     - theme: brand
-      text: use-vscode
+      text: vscode相关
       link: /use-vscode
     - theme: brand
-      text: riscv指令介绍
-      link: /computer/cpu/riscv.md
+      text: y86相关
+      link: /computer/cpu/instruction-set/y86
     - theme: brand
-      text: riscv相关资料
-      link: /computer/cpu/riscv-information.md
+      text: modelsim
+      link: /computer/cpu/modelsim
+
 features:
    - title: 更多功能正在支持中
      details: 敬请期待

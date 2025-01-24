@@ -3,7 +3,7 @@ import { defineConfig } from 'vitepress'
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
   base: '/akun-docs/',
-  title: "OER",
+  title: "CS-Knowledge",
   description: "Sharing of computer knowledge",
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
@@ -17,8 +17,8 @@ export default defineConfig({
         items: [
           { text: 'cpu-single-cycle项目介绍', link: '/cpu-single-cycle' },
           { text: '安装ubuntu系统', link: '/install-ubuntu' },
-          { text: 'riscv指令介绍', link: '/computer/cpu/riscv' },
-          { text: 'riscv相关资料', link: '/computer/cpu/riscv-information' }
+          { text: 'y86相关', link: '/computer/cpu/instruction-set/y86' },
+          { text: 'modelsim', link: '/computer/cpu/modelsim' }
         ]
       }
     ],
