@@ -3,7 +3,7 @@
 layout: home
 
 hero:
-  name: "akun"
+  name: "OER"
   text: "计算机知识分享"
   actions:
     - theme: brand

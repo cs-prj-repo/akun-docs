@@ -3,7 +3,7 @@ import { defineConfig } from 'vitepress'
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
   base: '/akun-docs/',
-  title: "akun",
+  title: "OER",
   description: "Sharing of computer knowledge",
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
