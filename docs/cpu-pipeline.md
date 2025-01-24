@@ -6,16 +6,27 @@ layout: doc
 
 # {{ $frontmatter.title }}
 
-## 克隆项目
+## 项目
+
+### 1.克隆项目
 
 ```shell
 $ git clone git@github.com:cs-prj-repo/cpu-pipeline.git
 ```
 
-
-
 该项目只支持总控式五级流水线，不支持握手信号的五级流水线。
 项目要求不一定必须五级流水线, 可以是四级、六级、七级，只是需要按照文档的要求接入仿真信号。
+
+### 2. 设置环境变量
+在你的`~/.bashrc`文件当中添加如下的环境变量，添加完成后，执行`source ~/.bashrc`命令
+
+``` shell
+
+export CPU_HOME=cpu-pipeline目录的绝对路径     #复制后记得修改
+export SIM_HOME=$CPU_HOME/simulator          #直接复制即可
+export AM_HOME=$CPU_HOME/abstract-machine    #直接复制即可
+export TEST_HOME=$CPU_HOME/software-test     #直接复制即可
+```
 
 ## 五级流水线需要的仿真信号
 
