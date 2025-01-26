@@ -274,6 +274,9 @@ make run ARCH=riscv32-npc
 <br>
 
 ### 运行benchmarks目录下的测试集程序:
+::: tip 运行benchmarks下面测试程序时, 暂时先关闭`Difftest`和波形追踪功能
+:::
+
 ```shell
 #运行coremark测试:
 cd $TEST_HOME/benchmarks/coremark
