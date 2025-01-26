@@ -6,9 +6,14 @@ layout: doc
 
 # {{ $frontmatter.title }}
 
-::: tip 拉取最新的项目
+::: tip 注意事项：使用最新的框架代码和文档！
+项目会持续修复一些错误或增加一些对使用者友好的内容，文档会有不间断的更新和修复错误，所以我们需要使用最新的项目和文档
 
-    项目和文档会有更新，请拉取最新的项目，并配合最新的文档使用
+
+如果你已经克隆了项目, 可以在该项目目录下使用`git pull`来获取最新的项目。
+
+有关`git pull`命令的详细使用，可以通过AI来获得更多的信息。
+
 :::
 
 ## 一、项目介绍
@@ -68,7 +73,10 @@ cpu-single-cycle
 
 ### 安装Verilator v5.008
 
-使用[官方教程](https://verilator.org/guide/latest/install.html#git-quick-install)或者google搜索进行安装
+由于在`Ubuntu22.04`上面，使用`apt`包管理器安装的`verilator`版本过低, 所以我们使用[官方教程](https://verilator.org/guide/latest/install.html#git-quick-install)或者google搜索进行安装
+
+如果你在命令行中执行`verilator --version`命令后，显示出`Verilator 5.008 xxxxx`等信息，表明该软件安装成功
+
 
 ### 安装GTKwave
 ```shell
@@ -218,10 +226,6 @@ $ make run ARCH=riscv32-npc ALL=dummy
 ``` shell
 $ git clone git@github.com:cs-prj-repo/riscv-tests-am.git
 ```
-::: tip riscv-test-am/Makefile中的信息
-`TEST_ISA = i m`表明我们测试的指令集是RV-IM，可以根据需要修改需要支持的指令集
-<br>`SUPPORTED_AM_ISA = riscv64 riscv32 riscv64e riscv32e riscv32mini`表明我们支持这么多riscvg架构
-:::
 
 ```shell
 #运行riscv官方指令集测试程序：
@@ -288,6 +292,15 @@ cd $TEST_HOME/benchmarks/microbench
 make run ARCH=riscv32-npc mainargs=train
 
 ```
+
+::: tip 小总结
+通过执行以上命令，我们可以发现下面的规律:
+
+如果测试程序集里面有多个测试程序
+<br>执行`make run ARCH=riscv32-npc ALL=xxx`只会运行一个叫做`xxx`的测试程序
+<br>执行`make run ARCH=riscv32-npc` 会运行所有程序
+
+::: 
 
 ### 运行CSR指令测试程序
 ::: tip CSR测试程序注意事项
