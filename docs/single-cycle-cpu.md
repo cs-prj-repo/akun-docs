@@ -321,7 +321,7 @@ make run ARCH=riscv32-npc mainargs=train
 
 ### 运行CSR指令测试程序
 ::: tip CSR测试程序注意事项
-CSR测试程序虽然已经移植，不过仿真框架还没有修改支持所有处理器都能接入，所以暂时还不能测试--->全力开发中
+CSR测试程序虽然已经移植，不过仿真框架暂时不支持其测试---全力开发中
 :::
 当你实现了`mret`,`ecall`,`csrrw`, `csrrs`指令之后, 可以运行`yield-os`测试程序。
 <br>如果处理器实现正确，测试程序会缓慢出现字母`ABABAB`的序列。
@@ -343,10 +343,11 @@ make run ARCH=riscv32-npc
 
 首先在`single-cycle-cpu/IP`目录下面新建一个目录，目录的名称不作任何要求。
 <br>下文使用`your_cpu_dir`进行代指, 将你的处理器代码全部放到`your_cpu_dir`目录下面
+最后再通过simulator/Makefile中的`CPU_DIR`变量为你的处理器目录路径，来指定项目运行你的处理器
+
 ::: warning 注意define.v文件必须和你的处理器同在一个目录下面
 :::
 
-最后再通过simulator/Makefile中的`CPU_DIR`变量为你的处理器目录路径，来指定项目运行你的处理器
 
 ::: tip 示例
 
