@@ -1,16 +1,17 @@
 ---
-title: CPU-single-cycle项目使用指南
+title: single-cycle-cpu项目使用指南
 editLink: true
 layout: doc
 ---
 
 # {{ $frontmatter.title }}
 
-::: tip 注意事项：使用最新的框架代码和文档！
-项目会持续修复一些错误或增加一些对使用者友好的内容，文档会有不间断的更新和修复错误，所以我们需要使用最新的项目和文档
+::: tip 注意事项：使用最新的项目代码和文档！
+项目会持续修复一些错误或增加一些对用户友好的内容，因此项目和文档会有不间断的更新，我们需要使用最新的项目和文档
 
 
-如果你已经克隆了项目, 可以在该项目目录下使用`git pull`来获取最新的项目。
+关于项目：如果你已经克隆了项目, 可以在项目目录下使用`git pull`来获取最新的项目代码。
+<br>关于文档：文档的最新版本会直接呈现在网页上，可以多留意网页上新增了哪些内容
 
 有关`git pull`命令的详细使用，可以通过AI来获得更多的信息。
 
@@ -20,7 +21,7 @@ layout: doc
 该项目是一个RISC-V单周期处理器仿真、测试框架。你可以将你的单周期处理器接入到该框架中，用于验证自己的处理器实现是否正确，也可以在自己的处理器上运行一些简单的软件程序。
 
 
-支持的指令集:RV32I(不含特权指令)
+支持的指令集:RV32IM
 
 **项目主要目录如下**:
 ```
@@ -28,7 +29,8 @@ cpu-single-cycle
 ├── abstract-machine                 # 裸机运行时环境(目前忽略它)
 ├── IP                               # 处理器代码目录
 │    ├── mycpu                          # 此目录用于接入你的单周期处理器
-│    └── single-cycle                   # 项目内置的一个单周期处理器(verilog)
+│    ├── single-cycle-cpu               # 项目内置的一个单周期处理器(verilog)
+│    └── single-cycle-cpu-master        # 项目内置的一个单周期处理器(verilog)
 ├── software-test                    # 测试处理器的软件程序
 │    ├── benchmarks                     # benchmark测试程序
 │    │   cpu-tests                      # 简单cpu测试程序
@@ -41,13 +43,7 @@ cpu-single-cycle
 └── README.md
 
 ```
-- **相关知识点**
 
-    [CPU测试程序benchmark](https://en.wikipedia.org/wiki/Benchmark_(computing))
-
-    [处理器模拟器](https://en.wikipedia.org/wiki/CPU_Sim)
-
-    [裸机运行时环境](https://en.wikipedia.org/wiki/Runtime_system)
 
 ##  二、实验环境搭建
 
@@ -100,23 +96,29 @@ $ sudo apt-get install g++-riscv64-linux-gnu binutils-riscv64-linux-gnu
 ## 三、初次运行项目
 
 ### 1. 获取项目代码
+在命令行或终端环境下，执行下列命令获取项目代码
+
+如果之前已经执行过下面代码克隆过该项目，可以在项目目录下使用`git pull`来获取最新代码
+<br>或者也可以将已经克隆的项目删除掉之后，再执行下面的命令。
+<br>有关`git pull`的一些使用方法，可以通过询问`AI`得知
 ``` shell
 $ git clone git@github.com:cs-prj-repo/cpu-single-cycle.git
 ```
 
 ### 2. 设置环境变量
 在你的`~/.bashrc`文件当中添加如下的环境变量，添加完成后，执行`source ~/.bashrc`命令
+<br>有关如何添加环境变量，可以通过询问`AI`得知
 
 ``` shell
 
-export CPU_HOME=cpu-single-cycle目录的绝对路径 #复制后记得修改
+export CPU_HOME=cpu-single-cycle目录的绝对路径 #复制后记得修改,注意记得是绝对路径
 export SIM_HOME=$CPU_HOME/simulator          #直接复制即可
 export AM_HOME=$CPU_HOME/abstract-machine    #直接复制即可
 export TEST_HOME=$CPU_HOME/software-test     #直接复制即可
 ```
 
 ### 3. 运行项目框架默认的处理器和内置程序
-在终端中执行下面命令，尝试使用项目框架默认的处理器运行内置程序。
+在命令行或终端环境下执行下面命令，尝试使用项目框架默认的处理器运行内置程序。
 ``` shell
 $ cd $SIM_HOME
 $ make run
@@ -227,6 +229,9 @@ $ make run ARCH=riscv32-npc ALL=dummy
 $ git clone git@github.com:cs-prj-repo/riscv-tests-am.git
 ```
 
+2. 运行riscv官方测试集程序
+
+在命令行或终端下执行下面的代码运行测试集程序
 ```shell
 #运行riscv官方指令集测试程序：
 cd xxx/riscv-tests-am
@@ -253,6 +258,9 @@ make run ARCH=riscv32-npc
 > cpu-tests目录下的测试程序只是一些简单的测试程序, 测试准确率并不高
 
 > cpu-tests目录下的测试程序里有一些含有M类指令, 如果你的处理器只支持RV32I，会有一些测试无法通过，这是正常的，请不要担心。
+
+在命令行或终端下执行下面的代码运行测试集程序
+
 ``` shell
 #运行测试集程序的框架代码：
 cd $TEST_HOME/cpu-tests
@@ -274,9 +282,10 @@ make run ARCH=riscv32-npc
 <br>
 
 ### 运行benchmarks目录下的测试集程序:
-::: tip 运行benchmarks下面测试程序时, 暂时先关闭`Difftest`和波形追踪功能
+::: tip 运行benchmarks下面测试程序时, 暂时先关闭`Difftest`和`波形追踪`功能
 :::
 
+在命令行或终端下执行下面的代码运行测试集程序:
 ```shell
 #运行coremark测试:
 cd $TEST_HOME/benchmarks/coremark

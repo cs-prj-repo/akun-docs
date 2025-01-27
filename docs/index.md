@@ -6,11 +6,11 @@ hero:
   name: "计算机知识分享"
   actions:
     - theme: brand
-      text: cpu-single-cycle项目使用指南
-      link: /cpu-single-cycle
+      text: single-cycle-cpu项目使用指南
+      link: /single-cycle-cpu
     - theme: brand
-      text: cpu-pipeline项目使用指南
-      link: /cpu-pipeline
+      text: pipeline-cpu项目使用指南
+      link: /pipeline-cpu
     - theme: brand
       text: ubuntu系统安装
       link: /install-ubuntu
