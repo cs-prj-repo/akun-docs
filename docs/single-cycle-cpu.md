@@ -69,10 +69,15 @@ cpu-single-cycle
 
 ### 安装Verilator v5.008
 
-由于在`Ubuntu22.04`上面，使用`apt`包管理器安装的`verilator`版本过低, 所以我们使用[官方教程](https://verilator.org/guide/latest/install.html#git-quick-install)或者google搜索进行安装
+Verilator 是一款开源的支持 Verilog 和 SystemVerilog 仿真工具。它能够将给定的电路设计翻译成 C++ 或者 SystemC 的库等中间文件，最后使用 C/C++ 编写激励测试，去调用前面生成的中间文件，由 C/C++ 编译器编译执行，来完成仿真。此外，它也具有静态代码分析的功能。
 
-如果你在命令行中执行`verilator --version`命令后，显示出`Verilator 5.008 xxxxx`等信息，表明该软件安装成功
+我们需要手动编译安装 Verilator v5.008，步骤可以参考[官方文档](https://verilator.org/guide/latest/install.html)、CSDN、和知乎。本文主要对文档内容进行整理，并补充一些细节。
 
+执行以下命令:
+``` shell
+$ verilator --version
+```
+如果输出了Verilator v5.008的版本号，说明已经安装成功
 
 ### 安装GTKwave
 ```shell
@@ -102,7 +107,7 @@ $ sudo apt-get install g++-riscv64-linux-gnu binutils-riscv64-linux-gnu
 <br>或者也可以将已经克隆的项目删除掉之后，再执行下面的命令。
 <br>有关`git pull`的一些使用方法，可以通过询问`AI`得知
 ``` shell
-$ git clone git@github.com:cs-prj-repo/cpu-single-cycle.git
+$ git clone git@github.com:cs-prj-repo/single-cycle-cpu.git
 ```
 
 ### 2. 设置环境变量
@@ -525,20 +530,12 @@ $ make run
 <br>对于非Load和非Store指令来说，波形文件的最后一条波形就是出错的那条指令
 <br>对于Load指令来说，有可能不是Load指令出错，而是Store指令出错。如果是Store指令的错误，需要去看最后一条波形的前一些周期，即Store指令的波形。
 
-::: tip Diffetst总结
-对于非Load和非Store指令来说，波形文件的最后一条波形就是出错的那条指令
-
-对于Load指令来说，有可能不是Load指令出错，而是Store指令出错。如果是Store指令的错误，需要去看最后一条波形的前一些周期，即Store指令的波形。
-:::
-
-
-
-::: tip 波形文件总结
+::: tip Diffetst和波形文件总结
 对于非Load和非Store指令来说，波形文件的最后一条波形就是出错的那条指令
 
 对于Load指令来说，有可能不是Load指令出错，而是Store指令出错。如果是Store指令的错误，需要去看波形文件最后一条波形的前一些周期的Store指令的波形。
 
-以上是错误指令在波形文件的大概位置，具体是哪一条波形，我们还需要通过`pc`和`instr`进行准确定位。
+以上是错误指令在波形文件的大概位置，具体是哪一条波形，我们还需要通过`pc`和`instr`进行精确定位。
 :::
 
 
