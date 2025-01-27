@@ -286,28 +286,9 @@ make run ARCH=riscv32-npc
 <br>
 
 ### 运行benchmarks目录下的测试集程序:
-::: tip 运行benchmarks下面测试程序时, 暂时先关闭`Difftest`和`波形追踪`功能
+::: tip pipeline暂时先不测试benchmarks
 :::
 
-在命令行或终端下执行下面的代码运行测试集程序:
-```shell
-#运行coremark测试:
-cd $TEST_HOME/benchmarks/coremark
-make run ARCH=riscv32-npc 
-
-#运行dhrystone测试：
-cd $TEST_HOME/benchmarks/dhrystone
-make run ARCH=riscv32-npc 
-
-#运行microbench测试1：
-cd $TEST_HOME/benchmarks/microbench
-make run ARCH=riscv32-npc mainargs=test
-
-#运行microbench测试2：
-cd $TEST_HOME/benchmarks/microbench
-make run ARCH=riscv32-npc mainargs=train
-
-```
 
 ::: tip 小总结
 通过执行以上命令，我们可以发现下面的规律:
