@@ -292,9 +292,10 @@ make run ARCH=riscv32-npc
 
 在命令行或终端下执行下面的代码运行测试集程序:
 ```shell
-#运行coremark测试:
+#运行coremark测试, 至少需要跑两分钟:
 cd $TEST_HOME/benchmarks/coremark
 make run ARCH=riscv32-npc 
+
 
 #运行dhrystone测试：
 cd $TEST_HOME/benchmarks/dhrystone

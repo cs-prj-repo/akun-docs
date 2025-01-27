@@ -23,6 +23,9 @@ hero:
     - theme: brand
       text: modelsim
       link: /computer/cpu/modelsim
+    - theme: brand
+      text: todolist
+      link: /todo-list
 
 features:
    - title: 更多功能正在支持中
