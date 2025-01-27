@@ -6,83 +6,593 @@ layout: doc
 
 # {{ $frontmatter.title }}
 
-## pipeline-cpu项目
+::: tip 注意事项：使用最新的项目代码和文档！
+项目会持续修复一些错误或增加一些对用户友好的内容，因此项目和文档会有不间断的更新，我们需要使用最新的项目和文档
 
 
+关于项目：如果你已经克隆了项目, 可以在项目目录下使用`git pull`来获取最新的项目代码。
+<br>关于文档：文档的最新版本会直接呈现在网页上，可以多留意网页上新增了哪些内容
 
+有关`git pull`命令的详细使用，可以通过AI来获得更多的信息。
 
-### 1.克隆项目
+:::
 
-```shell
-$ git clone git@github.com:cs-prj-repo/cpu-pipeline.git
-```
+## 一、项目介绍
+该项目是一个RISC-V总控式五级流水线处理器仿真、测试框架。你可以将你的流水线处理器接入到该框架中，用于验证自己的处理器实现是否正确，也可以在自己的处理器上运行一些简单的软件程序。
 
 该项目只支持总控式五级流水线，不支持握手信号的五级流水线。
-项目要求不一定必须五级流水线, 可以是四级、六级、七级，只是需要按照文档的要求接入仿真信号。
+
+支持的指令集:RV32IM
+
+**项目主要目录如下**:
+```
+pipeline-cpu
+├── abstract-machine                 # 裸机运行时环境(目前忽略它)
+├── IP                               # 处理器代码目录
+│    ├── pipeline-cpu                   # 此目录用于接入你的单周期处理器
+├── software-test                    # 测试处理器的软件程序
+│    ├── benchmarks                     # benchmark测试程序
+│    │── cpu-tests                      # 简单cpu测试程序
+├── simulator                        # 处理器模拟仿真框架
+│    ├── include                        
+│    │   nemu                           # 用于difftest的nemu动态链接库目录
+│    │   src                            # 源代码目录
+│    └── Makefile                       
+├── Makefile                         
+└── README.md
+
+```
+
+
+##  二、实验环境搭建
+
+### 配置一览
+- 操作系统： ubuntu 22.04(LTS), 非root账户
+- 仿真工具： Verilator、GTKwave
+- 编译工具： RISC-V
+- 编程语言： Verilog HDL、C语言
+
+### 安装ubuntu系统
+
+[点击此处查看相关资料](install-ubuntu.md)
+<br>
+::: tip 记得更换Ubuntu软件源
+
+由于 Ubuntu 默认软件源在国内访问速度较慢，我们建议大家更换为国内的软件源，例如[北外镜像源](https://mirrors.bfsu.edu.cn/help/ubuntu/)。
+
+在更换软件源后，请使用 sudo apt update 命令更新索引。
+::: 
+
+
+
+
+### 安装Verilator v5.008
+
+Verilator 是一款开源的支持 Verilog 和 SystemVerilog 仿真工具。它能够将给定的电路设计翻译成 C++ 或者 SystemC 的库等中间文件，最后使用 C/C++ 编写激励测试，去调用前面生成的中间文件，由 C/C++ 编译器编译执行，来完成仿真。此外，它也具有静态代码分析的功能。
+
+我们需要手动编译安装 Verilator v5.008，步骤可以参考[官方文档](https://verilator.org/guide/latest/install.html)、CSDN、和知乎。本文主要对文档内容进行整理，并补充一些细节。
+
+执行以下命令:
+``` shell
+$ verilator --version
+```
+如果输出了Verilator v5.008的版本号，说明已经安装成功
+
+### 安装GTKwave
+```shell
+$ sudo apt install gtkwave
+```
+
+### 安装库文件和编译工具
+```shell
+$ sudo apt-get install build-essential
+$ sudo apt-get install libreadline-dev
+$ sudo apt-get install llvm-dev
+$ sudo apt-get install g++-riscv64-linux-gnu binutils-riscv64-linux-gnu
+```
+
+::: tip
+目前仍有一部分工具, 暂未提供安装命令，后续会陆续添加支持。
+::: 
+
+### 
+
+## 三、初次运行项目
+
+### 1. 获取项目代码
+在命令行或终端环境下，执行下列命令获取项目代码
+
+如果之前已经执行过下面代码克隆过该项目，可以在项目目录下使用`git pull`来获取最新代码
+<br>或者也可以将已经克隆的项目删除掉之后，再执行下面的命令。
+<br>有关`git pull`的一些使用方法，可以通过询问`AI`得知
+``` shell
+$ git clone git@github.com:cs-prj-repo/pipeline-cpu.git
+```
 
 ### 2. 设置环境变量
 在你的`~/.bashrc`文件当中添加如下的环境变量，添加完成后，执行`source ~/.bashrc`命令
+<br>有关如何添加环境变量，可以通过询问`AI`得知
 
 ``` shell
 
-export CPU_HOME=cpu-pipeline目录的绝对路径     #复制后记得修改
+export CPU_HOME=pipeline-cpu目录的绝对路径 #复制后记得修改,注意记得是绝对路径
 export SIM_HOME=$CPU_HOME/simulator          #直接复制即可
 export AM_HOME=$CPU_HOME/abstract-machine    #直接复制即可
 export TEST_HOME=$CPU_HOME/software-test     #直接复制即可
 ```
 
-## 五级流水线需要的仿真信号
+### 3. 运行项目框架默认的处理器和内置程序
+在命令行或终端环境下执行下面命令，尝试使用项目框架默认的处理器运行内置程序。
+``` shell
+$ cd $SIM_HOME
+$ make run
+```
+如果项目运行后出现一个绿色的`HIT GOOD TRAP`，说明程序运行成功，一切正常。
 
-由于使用Difftest机制是让`参考处理器`和`你的处理器`对比同一条指令执行完后的寄存器状态和`pc`信息.
-<br>对于单周期处理器来说，可以很简单的做到，因为单周期处理器每个周期就执行一条指令。
-<br>对于五级流水线处理器而言，一个时钟周期最多会有五条指令在执行，我们很难判断当前执行的指令是哪一个，哪一条指令执行完毕了。
+如果项目运行后出现编译报错，请自行修复，或联系我们并提供报错截图，帮助我们修复错误。
 
-为了确保我们可以捕捉到流水线处理器中真正执行完毕的那条指令，我们要对框架的仿真信号做出一定的修改。
-
-<br>项目使用的策略如下，当一个指令到达了写回阶段的时，Difftest就会认为这条指令执行完毕了， 接着就会对比`你的处理器`和`参考处理器`的寄存器状态。
-在具体实现上，我们使用一个1bit的commit信号，在取指阶段取出来指令后同时将这个commit设置为1，而后随着流水线一起流动，当commit到达写回阶段时，我们就判断出有一条指令执行完毕了。
-(气泡Bubble的commit永远设置为0)
-
-虽然我们可以通过commit信号知道有一条指令执行完毕，但是仿真环境无法知道具体是哪条指令，所以我们也要让具体执行的`指令pc`和指令`instr`随着流水线一起流动到达写回阶段，并传递给仿真框架，让仿真框架知道执行了哪条指令。
+如果项目运行后出现一个红色的`HIG BAD TRAP`, 说明处理器执行指令时出错，一般是处理器实现问题。
 
 
-由于Difftest检测的是一条指令执行后的`寄存器信息`和`PC`, 一条指令执行后，pc会变为`pc+4`或`pc的跳转地址`，所以我们也要让这条指令执行完毕后的pc值即`pre_pc`随着流水线一起流动到达写回阶段。
+::: tip 项目框架的仿真环境对于访存的要求
 
-::: warning 注意-向仿真环境传递的信号
+目前项目框架支持的内存为128MB, 地址空间为[0x80000000, 0x8fffffff], 注意在访存时不要超出该地址空间范围
+
+::: 
+::: tip 处理器运行的内置程序
+当在`simluator`目录下执行`make run`时，无论项目指定哪个处理器运行，都会运行一个内置的程序
+这段内置程序指令存放在`simulator/src/monitor/monitor.c`文件下，其名称为`static const uint32_t img[]`
+
+在运行你的处理器的时候，你可以根据自己的需要来修改此处代码来运行指定的程序指令
+
+注意内置程序指令一定要包含一条`ebreak`指令
+:::
+
+
+::: tip 仿真环境如何判定程序执行结束
+项目框架通过指定`ebreak`指令为程序结束的指令来判断一个程序是否运行结束。
+
+在执行程序时，项目框架会在每个程序的最后注入一条`ebraek`指令来达到该效果。
+
+由于内置程序是用户可以自行修改的，所以内置程序的`ebreak`指令需要由用户自己添加。
+:::
+
+::: tip 开启/关闭Difftest
+项目需要使用DIfftest技术来验证处理器实现是否正确。
+
+项目中Difftest默认处于开启状态
+
+在`simulator/inlcude/utils/open_sim_difftest.h`文件中
+可以通过注释或者解开注释`#define CONFIG_DIFFTEST 1`来打开或关闭Difftest功能
+
+注意，开启Difftest会减缓程序运行时间，在进行benchmarck程序对处理器进行跑分时，建议关闭Difftest
+:::
+
+
+::: tip 开启/关闭波形追踪
+在处理器运行时，仿真框架可以追踪到处理器运行程序的波形信息。
+
+项目默认波形追踪处于关闭状态
+
+在`simulator/inlcude/utils/open_sim_difftest.h`文件中
+可以通过注释或者解开注释`#define CONFIG_NPC_OPEN_SIM 1`来打开或关闭波形追踪功能
+
+谨记，如果开启波形运行大型，则会生成非常大的波形文件，高达1G-50GB，有可能会损害磁盘
+
+因此，当运行一些大型程序时，比如benchmark，一定不要开启波形追踪。
+
+如何使用更小的波形文件格式，如fst，正在开发中。
+:::
+
+
+
+### 4. 修复riscv32编译错误
+第一次运行下面的命令，会出现一个编译错误，我们来修复它。
+``` shell
+$ cd $TEST_HOME/cpu-tests
+$ make run ARCH=riscv32-npc ALL=dummy
+```
+
+如果遇到了以下错误:
+<br>`/usr/riscv64-linux-gnu/include/bits/wordsize.h:28:3: error: #error "rv32i-based targets are not supported"`
+<br>那么使用`sudo`权限修改`/usr/riscv64-linux-gnu/include/bits/wordsize.h`文件
+``` vim
+ #if __riscv_xlen == 64
+ # define __WORDSIZE_TIME64_COMPAT32 1
+ #else
+    # error "rv32i-based targets are not supported" ----->将这一行注释掉
+    # define __WORDSIZE_TIME64_COMPAT32 0           ----->在下面新增这一行
+ #endif
+```
+
+<br>如果遇到了以下错误：
+<br>`/usr/riscv64-linux-gnu/include/gnu/stubs.h:8:11: fatal error: gnu/stubs-ilp32.h: No such file or directory`
+<br>那么使用`sudo`权限修改`/usr/riscv64-linux-gnu/include/gnu/stubs.h`文件
+<br>将文件的`# include <gnu/stubs-ilp32.h>`这段代码注释掉
+<br>
+
+
+<br>
+<br>
+
+## 四、运行测试程序
+下面提供了多个可以运行测试程序的命令，选择其中一部分运行即可
+
+
+::: tip 运行程序对处理器的要求
+由于我们的测试程序是可运行的程序，一个可运行程序要求处理器必须能够执行`auipc`, `jal`,`addi`指令
+:::
+<br>
+
+### 运行riscv官方指令集测试集合
+> 在项目提供的测试程序中，官方测试集程序是最完备的测试集程序，检测准确度最高
+
+> 务必以该测试集程序作为处理器测试是否通过的标准
+1. 克隆riscv官方指令集测试仓库，可以克隆到任意目录
+``` shell
+$ git clone git@github.com:cs-prj-repo/riscv-tests-am.git
+```
+
+2. 运行riscv官方测试集程序
+
+在命令行或终端下执行下面的代码运行测试集程序
+```shell
+#运行riscv官方指令集测试程序：
+cd xxx/riscv-tests-am
+make run ARCH=riscv32-npc ALL=想要测试的指令
+
+#示例1-测试add指令实现是否正确：
+cd xxx/riscv-tests-am
+make run ARCH=riscv32-npc ALL=add
+
+#示例2-测试sub指令实现是否正确
+cd xxx/riscv-tests-am
+make run ARCH=riscv32-npc ALL=sub
+
+#示例3-测试所有指令实现是否正确
+cd xxx/riscv-tests-am
+make run ARCH=riscv32-npc
+```
+
+<br>
+<br>
+
+### 运行cpu-tests目录下的测试集程序:
+
+> cpu-tests目录下的测试程序只是一些简单的测试程序, 测试准确率并不高
+
+> cpu-tests目录下的测试程序里有一些含有M类指令, 如果你的处理器只支持RV32I，会有一些测试无法通过，这是正常的，请不要担心。
+
+在命令行或终端下执行下面的代码运行测试集程序
+
+``` shell
+#运行测试集程序的框架代码：
+cd $TEST_HOME/cpu-tests
+make run ARCH=riscv32-npc ALL=想运行的程序
+
+#示例2-运行string程序：
+cd $TEST_HOME/cpu-tests
+make run ARCH=riscv32-npc ALL=dummy
+
+#示例1-运行dummy程序：
+cd $TEST_HOME/cpu-tests
+make run ARCH=riscv32-npc ALL=dummy
+
+#示例3-运行所有程序：
+cd $TEST_HOME/cpu-tests
+make run ARCH=riscv32-npc
+```
+
+<br>
+
+### 运行benchmarks目录下的测试集程序:
+::: tip 运行benchmarks下面测试程序时, 暂时先关闭`Difftest`和`波形追踪`功能
+:::
+
+在命令行或终端下执行下面的代码运行测试集程序:
+```shell
+#运行coremark测试:
+cd $TEST_HOME/benchmarks/coremark
+make run ARCH=riscv32-npc 
+
+#运行dhrystone测试：
+cd $TEST_HOME/benchmarks/dhrystone
+make run ARCH=riscv32-npc 
+
+#运行microbench测试1：
+cd $TEST_HOME/benchmarks/microbench
+make run ARCH=riscv32-npc mainargs=test
+
+#运行microbench测试2：
+cd $TEST_HOME/benchmarks/microbench
+make run ARCH=riscv32-npc mainargs=train
+
+```
+
+::: tip 小总结
+通过执行以上命令，我们可以发现下面的规律:
+
+如果测试程序集里面有多个测试程序
+<br>执行`make run ARCH=riscv32-npc ALL=xxx`只会运行一个叫做`xxx`的测试程序
+<br>执行`make run ARCH=riscv32-npc` 会运行所有程序
+
+::: 
+
+### 运行CSR指令测试程序
+::: tip CSR测试程序注意事项
+CSR测试程序虽然已经移植，不过仿真框架暂时不支持其测试---全力开发中
+:::
+当你实现了`mret`,`ecall`,`csrrw`, `csrrs`指令之后, 可以运行`yield-os`测试程序。
+<br>如果处理器实现正确，测试程序会缓慢出现字母`ABABAB`的序列。
+<br>如果处理器实现出错，这个程序不是那么的好调试，因为涉及到各种陷入，比较复杂--->待改进
+
+执行下列命令，运行`yield-os`测试程序
+
+``` shell
+cd $TEST_HOME/csr-tests/yield-os
+make run ARCH=riscv32-npc
+```
+
+
+
+
+
+
+## 五、指定项目运行你的处理器
+
+首先在`pipelinc-cpu/IP`目录下面新建一个目录，目录的名称不作任何要求。
+<br>下文将使用`your_cpu_dir`代指你新建的目录, 将你的处理器代码全部放到`your_cpu_dir`目录下
+最后再通过simulator/Makefile中的`CPU_DIR`变量为你的处理器目录路径，来指定项目运行你的处理器
+::: warning 注意define.v文件必须和你的处理器同在一个目录下面
+:::
+
+::: tip 示例
+项目通过`simulator/Makefile`中的`CPU_DIR :=$(CPU_HOME)/IP/pipeline-cpu`指定了项目会运行`pipeline-cpu目录下的处理器`
+
+通过修改`CPU_DIR :=$(CPU_HOME)/IP/你的处理器目录名字`, 可以指定项目运行`你的处理器`
+
+<br>示例： 若`simulator/Makefile`中的`CPU_DIR :=$(CPU_HOME)/IP/AAA`, 则项目会运行`AAA`目录下的处理器
+
+:::
+
+
+## 六、将你的处理器接入仿真环境
+为了支持所有的单周期处理器都可以接入该仿真、测试环境, 仿真环境对运行的处理器有一定的要求
+
+### 1. 仿真框架对于处理器最顶层模块名称`TOP_Module_Name`的要求
+为了支持所有的单周期处理器都可以接入该仿真、测试环境，我们预先设定了一个最顶层的仿真模块名称，即`TOP_Module_Name=CPU`也就是说处理器最顶层模块名称必须是`CPU`
+::: warning 仿真框架只对TOP_Module_Name有此要求，对所有的verilog代码文件名，其他模块名称均没有任何要求。
+:::
+
+
+
+
+::: tip 自定义你的处理器TOP_Module_Name
+
+项目通过`simulator/Makefile`中的`TOPNAME :=CPU`指定了处理器最顶层模块名称`TOP_Module_Name`必须为`CPU`
+
+通过修改`TOPNAME :=你写的模块名`, 可以指定处理器最顶层模块名称为`你写的模块名`
+
+<br>示例： 若`simulator/Makefile`中的`TOPNAME :=AAA`, 则处理器最顶层模块名称需要为`AAA`
+::: 
+<br>
+
+### 2. 仿真框架对处理器最顶层模块的信号要求
+
+无论处理器顶层模块的模块名是什么，它都必须带有下面三个信号`clk`, `rst`, `cur_pc`, `commit`, `commit_pc`, `commit_pre_pc`, 这几个信号的说明如下
+
+``` shell
+module CPU(
+    input wire clk,
+    input wire rst,
+    output wire [31:0]          cur_pc,
+    output                      commit,
+    output wire [31:0]          commit_pc,
+    output wire [31:0]          commit_pre_pc
+);
+
+endmodule
+```
+由于仿真框架需要捕捉刚刚执行完的一条指令的`pc`和`instr`，并且五级流水线当中最多会同时执行五条指令，因此仿真框架会很难判断什么时候一条指令执行完毕了，刚刚执行完的一条指令到底是什么指令，为了确保仿真框架可以捕捉到流水线处理器中真正执行完毕的那条指令，我们需要对框架的仿真信号做出一定的修改。
+
+
+仿真框架使用的策略如下，当一条指令从取指阶段到达写回阶段后，仿真框架就判定一条指令执行完毕了。
+在具体实现上，我们通过让`pc`, `commit`, `instr`, `pre_pc`一起随着流水线往后流动到达写回阶段，然后仿真框架对到达写回阶段的信号进行检测
+
+
+::: tip 总结-流水线处理器需要向仿真环境传递的信号
+`cur_pc`
+<br> 是当前`pc`寄存器的值
 
 `pre_pc`信号:
 <br>向仿真信号传递的`pre_pc`值需要是正确的`pre_pc`值。
-<br>如果一条分支指令会跳转，那么`pre_pc`需要是跳转后的地址.
+<br>如果一条分支指令在执行阶段判断出会跳转，那么`pre_pc`需要是跳转后的地址
 
-`pc`信号:
+`commmit_pc`信号:
 <br> 是在流水线里面流到写回阶段的那条指令的pc值,不是当前PC寄存器的pc值
 
 `commit`信号:
 <br>可以IP/pipeline-cpu/fetch.v
 
-`instr`信号
+`commit_instr`信号
 <br>是在流水线里面流到写回阶段的那条指令
 
 :::
 具体信号可以参考下图
-![alt text](image.png)
-## DPI-C如何接入
 
-见`fetch.v`、`memory.v`、`regfile.b`、`memory.v`、`write_back.b`
+![alt text](image-1.png)
 
 
 
-## 流水线的气泡指令
 
-流水线的气泡指令建议为`addi x0, x0, 0`，其十六进制为`0x00000013`,其二进制为`00000000000000000000000000010011`。
 
-## Difftest检测和波形信息说明
+<br>
 
+### 3. 仿真框架中`clk`和`rst`信号的使用要求
+
+仿真框架`clk`和`rst`信号的使用要求如下：
+
+```verilog
+//我们只捕捉时钟上升沿的信号进行处理，示例如下
+always @(posedge clk) begin
+
+end
+
+//rst在高电平时进行复位
+always @(posedge clk) begin
+    if(rst) begin        //高电平时进行复位
+        regfile[0] <= 32'h0
+    end 
+    else begin
+        //other code
+    end
+end
+
+```
+<br>
+
+### 4. 仿真框架对于pc复位值的要求
+`pc`初始复位值必须为`0x80000000`
+``` verilog
+always @(posedge clk) begin
+    if(rst) begin
+        pc <= 32'h80000000; //32位操作系统
+    end
+end
+```
+<br>
+
+### 5. 接入仿真框架的DPI-C机制
+
+我们使用Verilator的DPI-C机制将处理器接入到仿真环境，并访问仿真环境的内存。
+
+<br>
+
+#### 对于取指阶段
+由于内存是仿真环境提供的，当我们从内存中进行取指时，需要通过DPI-C机制访问内存，使用方法参考下列代码
+同时需要在取指阶段让`commit`信号为`1'b1`
+```verilog
+module fetch(
+    //其他信号
+);
+
+import "DPI-C" function int  dpi_mem_read 	(input int addr  , input int len);
+assign instr = dpi_mem_read(pc, 4);
+assign commit = 1'b1;
+endmodule
+
+```
+
+<br>
+
+#### 对于寄存器文件的访问
+由于仿真环境在进行指令验证的时候，需要获取到寄存器文件的内存，所以我们要通过DPI-C机制将寄存器文件信号传递给仿真环境，使用方法参考下列代码
+```verilog
+module regfile(
+    //其他信号
+);
+
+reg [31:0] regfile[31:0];
+import "DPI-C" function void dpi_read_regfile(input logic [31 : 0] a []);
+initial begin
+	dpi_read_regfile(regfile);
+end
+endmodule
+```
+
+<br>
+
+#### 对于内存的访问
+当处理器需要读写内存的时候，也需要通过DPI-C机制从仿真环境获取到内存数据，使用方法参考下列代码
+
+```verilog
+module memory(
+    //其他信号
+);
+
+import "DPI-C" function void dpi_mem_write(input int addr, input int data, int len);
+import "DPI-C" function int  dpi_mem_read (input int addr  , input int len);
+
+//读取内存，每次读取4个字节，然后根据需要，再对读出来的数据进行处理
+wire 从内存中读出来的数据(32bit) = dpi_mem_read(要读取的内存地址, 4);
+
+//写入
+always @(posedge clk) begin
+	if(如果要从内存中读取一个字节) begin
+		dpi_mem_write(写入地址, 要写入的数据(32bit), 1);
+	end
+	else if(如果要从内存中读取两个字节) begin
+		dpi_mem_write(要写入的地址, 要写入的数据(32bit), 2);		
+	end
+	else if(如果要从内存中读取四个字节) begin
+		dpi_mem_write(要写入的地址, 要写入的数据(32bit), 4);				
+	end
+end
+```
+
+
+
+<br>
+
+### 6. 流水线寄存器复位和冲刷`bubble`时的处理
+
+当对流水线寄存器`regF`, `regD`, `regE`, `regM`, `regW`进行复位或冲刷时，需要对流水线寄存器有一个初始值，初始值建议如下：
+
+在对流水线寄存器进行复位和冲刷`bubble`时的建议为`addi x0, x0, 0`
+<br>其十六进制为`0x00000013`,二进制为`00000000000000000000000000010011`
+<br>其中的各种控制信号和数据信号，如`rs1`, `opcode`都是从这条指令解码过来的
+
+
+对流水线寄存器进行复位和冲刷`bubble`时的仿真信号建议如下
+``` verilog
+module regD或者regE或者regM或者regW(
+
+);
+
+    always @(posedge clk) begin
+        if(rst | bubble) begin
+            input_commit        <= 1'd0;
+            input_commit_pc     <= 32'd0;
+            input_commit_cur_pc <= 32'd0;
+            input_commit_instr  <= 32'd0;
+        end
+        else (~stall) begin
+            output_commit        <= input_commit;
+            output_commit_pc     <= input_commit_pc;
+            output_commit_cur_pc <= input_commit_cur_pc;
+            output_commit_instr  <= input_commit_instr;
+        end
+    end
+endmodule
+
+```
+
+
+
+
+## 七、再次运行项目
+
+当将处理器按照文档要求接入到仿真环境以后，我们的准备工作就一切就绪了，下面就要开始在该项目框架下验证我们自己的处理器了。
+
+执行下面命令，再次运行项目
+``` shell
+$ cd $SIM_HOME
+$ make run
+```
+当项目运行成功后，使用上文中的riscv官方指令测试集即`riscv-tests-am`来验证你的处理器实现是否正确
+
+
+
+## 八、[失败调试]如何查看和阅读波形
+
+当处理器运行出现一个红色的`HIT BAD TRAP`字样时，说明处理器执行的指令出错。
+当指令出错的时候，我们首先可以根据Difftest打印的错误信息来追踪错误指令，当确定了错误的指令后，可以通过查看波形来排查错误。
+
+
+### 1. Difftest检测和波形信息说明
 在单周期处理中，由于处理器在一个周期只执行一条指令，所以错误指令被Difftest捕捉时，一般为波形文件的最后一条指令。
 
-不过在流水线处理器中，当错误指令进行到写回阶段并被Difftest捕捉到时，仿真框架早已追踪了取指，译码，执行，访存指令的波形信息。
-
-由于我们是在Difftest捕捉到错误并结束波形追踪时，此时仿真框架早已追踪了几条经历过译码、执行、访存指令。
+不过在流水线处理器中，当错误指令进行到写回阶段并被Difftest捕捉到时，此时仿真框架早已追踪了几条经历过译码、执行、访存指令。
 <br>因此和单周期不同，Difftest捕捉的出错的指令通常不是波形文件的最后一条波形，而是最后一条波形前面4-5个`clk`的波形。
 <br>由于流水线中有Stall和Bubble的存在，则会使得波形文件更加复杂, 一般真正出错的指令为波形文件最后一条波形前面4-20个`clk`的波形。
 
@@ -92,4 +602,17 @@ export TEST_HOME=$CPU_HOME/software-test     #直接复制即可
 
 
 
-## 其他内容和单周期一模一样
+
+### 2. 如何查看波形
+
+每当测试程序成功运行完毕并退出后，仿真测试框架就会将该次处理器运行的波形信息保存下来
+此时执行如下命令，查看波形
+``` shell
+cd $SIM_HOME && make sim
+```
+
+### 3. 如何高效查看波形
+
+`gtkwave`在左下角有一个信号搜索框可以进行筛选，可以筛选出自己想要看的信号波形。
+
+
