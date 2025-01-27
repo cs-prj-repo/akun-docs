@@ -116,7 +116,7 @@ $ git clone git@github.com:cs-prj-repo/single-cycle-cpu.git
 
 ``` shell
 
-export CPU_HOME=cpu-single-cycle目录的绝对路径 #复制后记得修改,注意记得是绝对路径
+export CPU_HOME=single-cycle-cpu目录的绝对路径 #复制后记得修改,注意记得是绝对路径
 export SIM_HOME=$CPU_HOME/simulator          #直接复制即可
 export AM_HOME=$CPU_HOME/abstract-machine    #直接复制即可
 export TEST_HOME=$CPU_HOME/software-test     #直接复制即可
