@@ -25,7 +25,7 @@ layout: doc
 
 **项目主要目录如下**:
 ```
-cpu-single-cycle
+single-cycle-cpu
 ├── abstract-machine                 # 裸机运行时环境(目前忽略它)
 ├── IP                               # 处理器代码目录
 │    ├── mycpu                          # 此目录用于接入你的单周期处理器
@@ -341,7 +341,7 @@ make run ARCH=riscv32-npc
 
 ## 五、指定项目运行你的处理器
 
-首先在cpu-single-cycle/IP目录下面新建一个目录，目录的名称不作任何要求。
+首先在`single-cycle-cpu/IP`目录下面新建一个目录，目录的名称不作任何要求。
 <br>下文使用`your_cpu_dir`进行代指, 将你的处理器代码全部放到`your_cpu_dir`目录下面
 ::: warning 注意define.v文件必须和你的处理器同在一个目录下面
 :::
