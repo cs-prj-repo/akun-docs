@@ -19,8 +19,7 @@ export default defineConfig({
           { text: 'pipeline-cpu项目介绍',     link: '/pipeline-cpu' },
           { text: '安装ubuntu系统',           link: '/install-ubuntu' },
           { text: 'y86相关',                 link: '/computer/cpu/instruction-set/y86' },
-          { text: 'modelsim',               link: '/computer/cpu/modelsim' },
-          { text: 'todo-list',           link: '/todo-list'}
+          { text: 'modelsim',               link: '/computer/cpu/modelsim' }
         ]
       }
     ],

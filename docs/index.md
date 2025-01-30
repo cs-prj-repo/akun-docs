@@ -26,6 +26,13 @@ hero:
     - theme: brand
       text: todolist
       link: /todo-list
+    - theme: brand
+      text: rv64i
+      link: /riscv-isa-doc/rv64/rv64i
+    - theme: brand
+      text: rv64m
+      link: /riscv-isa-doc/rv64/rv64m
+
 
 features:
    - title: 更多功能正在支持中
