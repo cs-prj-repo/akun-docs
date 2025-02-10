@@ -63,20 +63,14 @@ pipeline-cpu
 在更换软件源后，请使用 sudo apt update 命令更新索引。
 ::: 
 
-
-
-
 ### 安装Verilator v5.008
 
 Verilator 是一款开源的支持 Verilog 和 SystemVerilog 仿真工具。它能够将给定的电路设计翻译成 C++ 或者 SystemC 的库等中间文件，最后使用 C/C++ 编写激励测试，去调用前面生成的中间文件，由 C/C++ 编译器编译执行，来完成仿真。此外，它也具有静态代码分析的功能。
 
-我们需要手动编译安装 Verilator v5.008，步骤可以参考[官方文档](https://verilator.org/guide/latest/install.html)、CSDN、和知乎。本文主要对文档内容进行整理，并补充一些细节。
-
-执行以下命令:
+执行以下命令安装verilator:
 ``` shell
-$ verilator --version
+sudo apt install verilator
 ```
-如果输出了Verilator v5.008的版本号，说明已经安装成功
 
 ### 安装GTKwave
 ```shell
