@@ -107,6 +107,11 @@ $ sudo apt-get install g++-riscv64-linux-gnu binutils-riscv64-linux-gnu
 ``` shell
 $ git clone git@github.com:cs-prj-repo/single-cycle-cpu.git
 ```
+如果使用上述的git克隆失败，可以使用下面的命令
+``` shell
+$ git clone https://github.com/cs-prj-repo/single-cycle-cpu.git
+```
+如果再次克隆失败并且使用的是虚拟机，可以通过下载压缩包并且使用`scp`相关命令，将文件拷贝到虚拟机里面。
 
 ### 2. 设置环境变量
 在你的`~/.bashrc`文件当中添加如下的环境变量，添加完成后，执行`source ~/.bashrc`命令
