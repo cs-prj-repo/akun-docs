@@ -12,28 +12,11 @@ hero:
       text: pipeline-cpu项目使用指南
       link: /pipeline-cpu
     - theme: brand
+      text: single-cycle-cpu启动RT
+      link: /run-RT
+    - theme: brand    
       text: ubuntu系统安装
       link: /install-ubuntu
-    - theme: brand
-      text: vscode相关
-      link: /use-vscode
-    - theme: brand
-      text: y86相关
-      link: /computer/cpu/instruction-set/y86
-    - theme: brand
-      text: modelsim
-      link: /computer/cpu/modelsim
-    - theme: brand
-      text: todolist
-      link: /todo-list
-    - theme: brand
-      text: rv64i
-      link: /riscv-isa-doc/rv64/rv64i
-    - theme: brand
-      text: rv64m
-      link: /riscv-isa-doc/rv64/rv64m
-
-
 features:
    - title: 更多功能正在支持中
      details: 敬请期待
