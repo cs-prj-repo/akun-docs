@@ -12,7 +12,7 @@ layout: doc
 如果你想要让你的单周期处理器启动`RT`，那么你的处理器需要实现`mret`, `ecall`, `csrrw`, `csrrs`这四条指令，并且支持读写`mstatus`, `mtvec`, `mcause`, `mepc`这四个CSR寄存器。
 
 以下是指令的实现方式:
-
+<br>如果是`ecall`指令， 那么`mepc`的指令效果需要是`mepc <= pc + 4`并且`mcause <= 32'd1`
 
 以下是CSR寄存器的实现方式:
 ``` verilog
